@@ -1,5 +1,7 @@
 package com.database.project;
 
+import com.database.project.HelperObjects.User;
+
 import java.sql.*;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -374,33 +376,65 @@ public class DbDriver {
         }
     }
 
-    private int generateCartId(){
-
-        int id = 0;
-
-        //Cart id has to be unique
-
-        return id;
-    }
-
-    public void addUser(){
-
-        String firstName = "first";
-        String lastName = "last";
-        String accountName = "acct name";
-        String pass = "not pass";
-        int cartId = generateCartId();
-
+    //Replace local variables with same name parameters of java object when it is created.
+    //Inserts a new user entry into the Users table based on the data obtained from the Sign Up view.
+    public void addUser(User user){
 
         String sqlStatement = "INSERT INTO `" + DB_NAME + "`.`Users` "
-                +   "(firstName, lastName, accountName, password, cartId)"
-                +   "VALUES (" + firstName + ", " + lastName + ", " + accountName + ", " + pass + ", " + cartId + ")";
+                +   "(firstName, lastName, accountName, password) "
+                +   "VALUES (?,?,?,?)";
 
         try {
+
             statement = connection.prepareStatement(sqlStatement);
+            statement.setString(1, user.getFirstName());
+            statement.setString(2, user.getLastName());
+            statement.setString(3, user.getAccountName());
+            statement.setString(4, user.getPassword());
+
+            statement.executeUpdate();
+
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
+
+    //Query a select statement based on the account name and password of the user.  Used for signing in.
+    public User signIn(String accountName, String password){
+
+        User user = null;
+
+        String sqlStatement = "SELECT * FROM `" + DB_NAME + "`.Users WHERE accountName=? AND password=?";
+
+        try {
+
+            statement = connection.prepareStatement(sqlStatement);
+            statement.setString(1, accountName);
+            statement.setString(2, password);
+
+            ResultSet resultSet = statement.executeQuery();
+
+            //No user found, so return null user.  User typed invalid credentials.
+            if(!resultSet.next()){
+                user = null;
+            }
+
+            else {
+
+                user = new User();
+                user.setId(resultSet.getInt("userId"));
+                user.setFirstName(resultSet.getString("firstName"));
+                user.setLastName(resultSet.getString("lastName"));
+                user.setAccountName(resultSet.getString("accountName"));
+                user.setPassword(resultSet.getString("password"));
+            }
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return user;
+    }
+
 
 }
