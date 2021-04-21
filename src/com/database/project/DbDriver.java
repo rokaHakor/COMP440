@@ -120,10 +120,8 @@ public class DbDriver {
                 +   "lastName           varchar(25) NULL,"
                 +   "accountName        varchar(25) NOT NULL,"
                 +   "password           varchar(25) NOT NULL,"
-                +   "cartId             INT NOT NULL,"
-                +   "PRIMARY KEY        (`userId`, `cartId`),"
-                +   "UNIQUE INDEX       `accountName_UNIQUE`            (`accountName` ASC) VISIBLE,"
-                +   "UNIQUE INDEX       `cartId_UNIQUE`                 (`cartId` ASC) VISIBLE"
+                +   "PRIMARY KEY        (`userId`),"
+                +   "UNIQUE INDEX       `accountName_UNIQUE`            (`accountName` ASC) VISIBLE"
                 +   ")";
 
         try{
@@ -314,16 +312,16 @@ public class DbDriver {
         String sqlCreate = "CREATE TABLE IF NOT EXISTS `" + DB_NAME + "`.`UserCart`"
                 +   "("
                 +   "cartItemId                 INT NOT NULL AUTO_INCREMENT,"
-                +   "Users_cartId               INT NOT NULL,"
+                +   "Users_userId               INT NOT NULL,"
                 +   "RetailInventory_itemId     INT NOT NULL,"
                 +   "quantity                   INT NOT NULL DEFAULT 1,"
-                +   "PRIMARY KEY                (`cartItemId`, `Users_cartId`, `RetailInventory_itemId`),"
-                +   "INDEX                      `fk_UserCart_Users_cartId_idx` (`Users_cartId` ASC) VISIBLE,"
+                +   "PRIMARY KEY                (`cartItemId`, `Users_userId`, `RetailInventory_itemId`),"
+                +   "INDEX                      `fk_UserCart_Users_userId_idx` (`Users_userId` ASC) VISIBLE,"
                 +   "INDEX                      `fk_UserCart_RetailInventory_itemId_idx` (`RetailInventory_itemId` ASC) VISIBLE,"
 
-                +   "CONSTRAINT `fk_UserCart_Users_cartId`"
-                +       "FOREIGN KEY (`Users_cartId`)"
-                +       "REFERENCES `" + DB_NAME + "`.`Users` (`cartId`) "
+                +   "CONSTRAINT `fk_UserCart_Users_userId`"
+                +       "FOREIGN KEY (`Users_userId`)"
+                +       "REFERENCES `" + DB_NAME + "`.`Users` (`userId`) "
                 +       "ON DELETE NO ACTION "
                 +       "ON UPDATE NO ACTION, "
 
@@ -376,6 +374,33 @@ public class DbDriver {
         }
     }
 
+    private int generateCartId(){
 
+        int id = 0;
+
+        //Cart id has to be unique
+
+        return id;
+    }
+
+    public void addUser(){
+
+        String firstName = "first";
+        String lastName = "last";
+        String accountName = "acct name";
+        String pass = "not pass";
+        int cartId = generateCartId();
+
+
+        String sqlStatement = "INSERT INTO `" + DB_NAME + "`.`Users` "
+                +   "(firstName, lastName, accountName, password, cartId)"
+                +   "VALUES (" + firstName + ", " + lastName + ", " + accountName + ", " + pass + ", " + cartId + ")";
+
+        try {
+            statement = connection.prepareStatement(sqlStatement);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
 
 }
