@@ -1,30 +1,20 @@
 package com.database.project;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 @AllArgsConstructor
+@Data
 public class Item {
 
-	@Getter
-	@Setter
 	private int itemID;
 
-	@Getter
-	@Setter
 	private String name;
 
-	@Getter
-	@Setter
 	private int quantity;
 
-	@Getter
-	@Setter
 	private double price;
 
-	@Getter
-	@Setter
 	private String description;
 
 	public Item(Item other, int quantity) {

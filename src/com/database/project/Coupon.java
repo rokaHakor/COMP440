@@ -1,14 +1,13 @@
 package com.database.project;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Value;
 
 @AllArgsConstructor
+@Value
 public class Coupon {
 
-	@Getter
-	private final int couponID;
+	int couponID;
 
-	@Getter
-	private final double value;
+	double value;
 }
