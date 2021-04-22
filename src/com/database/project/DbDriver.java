@@ -380,6 +380,11 @@ public class DbDriver {
     //Inserts a new user entry into the Users table based on the data obtained from the Sign Up view.
     public void addUser(User user){
 
+        if (user.getAccountName().isEmpty() || user.getPassword().isEmpty()){
+            System.out.println("Account name and/or password cannot be empty.");
+            return;
+        }
+
         String sqlStatement = "INSERT INTO `" + DB_NAME + "`.`Users` "
                 +   "(firstName, lastName, accountName, password) "
                 +   "VALUES (?,?,?,?)";
@@ -401,6 +406,11 @@ public class DbDriver {
 
     //Query a select statement based on the account name and password of the user.  Used for signing in.
     public User signIn(String accountName, String password){
+
+        if(accountName.isEmpty() || password.isEmpty()){
+            System.out.println("Account name and/or password cannot be empty.");
+            return null;
+        }
 
         User user = null;
 
