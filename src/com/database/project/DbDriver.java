@@ -1,10 +1,9 @@
 package com.database.project;
 
-import com.database.project.HelperObjects.User;
-
 import java.sql.*;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class DbDriver {
@@ -20,7 +19,7 @@ public class DbDriver {
 
     private Connection connection;
     private PreparedStatement statement;
-    private Statement createStatement;      //Used for sending queries to MySql that create/initialize the main database and tables.
+    private Statement createStatement;      //Used for sending queries to MySql that create/create the main database and tables.
 
     //Constructor for the database driver.
     public DbDriver(){
@@ -61,16 +60,16 @@ public class DbDriver {
             e.printStackTrace();
         }//End of config initialization.
 
-        initializeDatabase();
-        initializeUsersTable();
-        initializeBanksTable();
-        initializeBankAccountsTable();
-        initializeCouponsTable();
-        initializeOrderNumbersTable();
-        initializeRetailInventoryTable();
-        initializeSoldItemsTable();
-        initializeUserCartTable();
-        initializeCouponItemsTable();
+        createDatabase();
+        createUsersTable();
+        createBanksTable();
+        createBankAccountsTable();
+        createCouponsTable();
+        createOrderNumbersTable();
+        createRetailInventoryTable();
+        createSoldItemsTable();
+        createUserCartTable();
+        createCouponItemsTable();
 
         try{
             createStatement.close();
@@ -82,7 +81,7 @@ public class DbDriver {
 
     //Connect to MySql localhost and create a new database if one doesn't exist.
     //Uses the Database Configuration text file in the main executable directory.
-    private void initializeDatabase(){
+    private void createDatabase(){
 
         try{
             Class.forName("com.mysql.jdbc.Driver");                         //Register for JDBC driver
@@ -114,7 +113,7 @@ public class DbDriver {
     }
 
     //Create the Users table if it doesn't exist
-    private void initializeUsersTable() {
+    private void createUsersTable() {
         String sqlCreate = "CREATE TABLE IF NOT EXISTS `" + DB_NAME + "`.`Users`"
                 +   "("
                 +   "userId             INT NOT NULL AUTO_INCREMENT,"
@@ -136,7 +135,7 @@ public class DbDriver {
     }
 
     //Create the Banks table if it doesn't exist
-    private void initializeBanksTable() {
+    private void createBanksTable() {
         String sqlCreate = "CREATE TABLE IF NOT EXISTS `" + DB_NAME + "`.`Banks`"
                 +   "("
                 +   "bankId             INT NOT NULL AUTO_INCREMENT,"
@@ -155,7 +154,7 @@ public class DbDriver {
     }
 
     //Create the Bank Accounts table if it doesn't exist
-    private void initializeBankAccountsTable() {
+    private void createBankAccountsTable() {
         String sqlCreate = "CREATE TABLE IF NOT EXISTS `" + DB_NAME + "`.`BankAccounts`"
                 +   "("
                 +   "bankAccountId      INT NOT NULL AUTO_INCREMENT,"
@@ -189,7 +188,7 @@ public class DbDriver {
     }
 
     //Create the Coupons table if it doesn't exist
-    private void initializeCouponsTable() {
+    private void createCouponsTable() {
         String sqlCreate = "CREATE TABLE IF NOT EXISTS `" + DB_NAME + "`.`Coupons`"
                 +   "("
                 +   "couponId           INT NOT NULL AUTO_INCREMENT,"
@@ -211,7 +210,7 @@ public class DbDriver {
     }
 
     //Create the Order Numbers table if it doesn't exist
-    private void initializeOrderNumbersTable() {
+    private void createOrderNumbersTable() {
         String sqlCreate = "CREATE TABLE IF NOT EXISTS `" + DB_NAME + "`.`OrderNumbers`"
                 +   "("
                 +   "orderId            INT NOT NULL AUTO_INCREMENT,"
@@ -253,11 +252,11 @@ public class DbDriver {
     }
 
     //Create the Retail Inventory table if it doesn't exist
-    private void initializeRetailInventoryTable() {
+    private void createRetailInventoryTable() {
         String sqlCreate = "CREATE TABLE IF NOT EXISTS `" + DB_NAME + "`.`RetailInventory`"
                 +   "("
                 +   "itemId             INT NOT NULL AUTO_INCREMENT,"
-                +   "name               varchar(50) NULL,"
+                +   "name               varchar(50) NOT NULL,"
                 +   "price              DECIMAL(8,2) NOT NULL,"
                 +   "description        varchar(200) NULL,"
                 +   "quantity           int NOT NULL DEFAULT 0,"
@@ -274,7 +273,7 @@ public class DbDriver {
     }
 
     //Create the Sold Items table if it doesn't exist
-    private void initializeSoldItemsTable() {
+    private void createSoldItemsTable() {
         String sqlCreate = "CREATE TABLE IF NOT EXISTS `" + DB_NAME + "`.`SoldItems`"
                 +   "("
                 +   "sellId                 INT NOT NULL AUTO_INCREMENT,"
@@ -310,7 +309,7 @@ public class DbDriver {
     }
 
     //Create the User Cart table if it doesn't exist
-    private void initializeUserCartTable() {
+    private void createUserCartTable() {
         String sqlCreate = "CREATE TABLE IF NOT EXISTS `" + DB_NAME + "`.`UserCart`"
                 +   "("
                 +   "cartItemId                 INT NOT NULL AUTO_INCREMENT,"
@@ -344,7 +343,7 @@ public class DbDriver {
     }
 
     //Create the Coupon Items table if it doesn't exist
-    private void initializeCouponItemsTable() {
+    private void createCouponItemsTable() {
         String sqlCreate = "CREATE TABLE IF NOT EXISTS `" + DB_NAME + "`.`CouponItems`"
                 +   "("
                 +   "couponItemId               INT NOT NULL AUTO_INCREMENT,"
@@ -446,5 +445,84 @@ public class DbDriver {
         return user;
     }
 
+    //Adds a new item to the RetailInventory table with the information from the given Item object.
+    public void addInventoryItem(Item item){
+        if (item == null || item.getName().isEmpty()){
+            System.out.println("Item cannot be null.");
+            return;
+        }
 
+        String sqlStatement = "INSERT INTO `" + DB_NAME + "`.`RetailInventory` "
+                +   "(name, price, description, quantity) "
+                +   "VALUES (?,?,?,?)";
+
+        try {
+
+            statement = connection.prepareStatement(sqlStatement);
+            statement.setString(1, item.getName());
+            statement.setDouble(2, item.getPrice());
+            statement.setString(3, item.getDescription());
+            statement.setInt(4, item.getQuantity());
+            statement.executeUpdate();
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    //Updates the quantity value for the selected item with the given id and how much to add/subtract by.  To reduce stock, give a negative number.
+    public void updateItemStock(int id, int quantity){
+
+        if (id < 1){
+            System.out.println("Given id is less than 1.  Id must be greater than 0.");
+            return;
+        }
+
+        String sqlStatement = "UPDATE `" + DB_NAME + "`.`RetailInventory` SET quantity = quantity + ? WHERE itemId = ? AND quantity + ? >= 0";
+
+        try {
+
+            statement = connection.prepareStatement(sqlStatement);
+            statement.setInt(1, quantity);
+            statement.setInt(2, id);
+            statement.setInt(3, quantity);
+            statement.executeUpdate();
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+    }
+
+    //Gets back a single page of data from the RetailInventory page.  Amount of items depends on page size given.
+    public ArrayList<Item> getInventoryPage(int page, int pageSize){
+
+        ArrayList<Item> itemlist = new ArrayList<Item>(pageSize);
+        String sqlStatement = "SELECT * FROM `" + DB_NAME + "`.RetailInventory LIMIT " + String.valueOf((page - 1)*pageSize) + ", " + String.valueOf(pageSize);
+
+        try {
+
+            statement = connection.prepareStatement(sqlStatement);
+            ResultSet results =  statement.executeQuery();
+
+            while(results.next()){
+
+                int id = results.getInt("itemId");
+                String name = results.getString("name");
+                double price = results.getDouble("price");
+                String description = results.getString("description");
+                int quantity = results.getInt("quantity");
+
+                Item item = new Item(id, name, quantity, price, description);
+
+                itemlist.add(item);
+            }
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return itemlist;
+    }
+    
 }

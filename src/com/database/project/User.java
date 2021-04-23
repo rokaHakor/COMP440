@@ -1,4 +1,4 @@
-package com.database.project.HelperObjects;
+package com.database.project;
 
 public class User {
 
