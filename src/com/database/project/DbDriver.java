@@ -375,7 +375,6 @@ public class DbDriver {
         }
     }
 
-    //Replace local variables with same name parameters of java object when it is created.
     //Inserts a new user entry into the Users table based on the data obtained from the Sign Up view.
     public void addUser(User user){
 
@@ -443,6 +442,30 @@ public class DbDriver {
         }
 
         return user;
+    }
+
+    public void updateUser(User user){
+
+        if (user.getId() < 1){
+            System.out.println("Given id is less than 1.  Id must be greater than 0.");
+            return;
+        }
+
+        String sqlStatement = "UPDATE `" + DB_NAME + "`.`Users` SET firstName = ? AND lastName = ? AND accountName = ? AND password = ? WHERE userId = ?";
+
+        try {
+
+            statement = connection.prepareStatement(sqlStatement);
+            statement.setString(1, user.getFirstName());
+            statement.setString(2, user.getLastName());
+            statement.setString(3, user.getAccountName());
+            statement.setString(4, user.getPassword());
+            statement.setInt(5, user.getId());
+            statement.executeUpdate();
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
     }
 
     //Adds a new item to the RetailInventory table with the information from the given Item object.
@@ -524,5 +547,175 @@ public class DbDriver {
 
         return itemlist;
     }
-    
+
+    //Deletes an item row from the RetailInventory table based on the given id.
+    public void deleteInventoryItem(int id){
+
+        if (id < 1){
+            System.out.println("Given id is less than 1.  Id must be greater than 0.");
+            return;
+        }
+
+        String sqlStatement = "DELETE FROM `" + DB_NAME + "`.`RetailInventory` WHERE id = ?";
+
+        try {
+
+            statement = connection.prepareStatement(sqlStatement);
+            statement.setInt(1, id);
+            statement.executeUpdate();
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    //Adds a new bank vendor to the Banks table.  Not used by the consumer, only the retail manager to keep a list of approved vendors.
+    public void addBank(String name){
+        if (name.isEmpty()){
+            System.out.println("Bank name cannot be empty.");
+            return;
+        }
+
+        String sqlStatement = "INSERT INTO `" + DB_NAME + "`.`Banks` "
+                +   "(name) "
+                +   "VALUES (?)";
+
+        try {
+
+            statement = connection.prepareStatement(sqlStatement);
+            statement.setString(1, name);
+
+            statement.executeUpdate();
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    //Deletes a Bank row from the Bank table based on the given id.
+    public void deleteBank(int id){
+
+        if (id < 1){
+            System.out.println("Given id is less than 1.  Id must be greater than 0.");
+            return;
+        }
+
+        String sqlStatement = "DELETE FROM `" + DB_NAME + "`.`Bank` WHERE id = ?";
+
+        try {
+
+            statement = connection.prepareStatement(sqlStatement);
+            statement.setInt(1, id);
+            statement.executeUpdate();
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    public void updateBank(Bank bank){
+
+        if (bank.getId() < 1){
+            System.out.println("Given id is less than 1.  Id must be greater than 0.");
+            return;
+        }
+
+        String sqlStatement = "UPDATE `" + DB_NAME + "`.`Banks` SET name = ?  WHERE bankId = ?";
+
+        try {
+
+            statement = connection.prepareStatement(sqlStatement);
+            statement.setString(1, bank.getName());
+            statement.setInt(2, bank.getId());
+            statement.executeUpdate();
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    //Adds a bank account to the BankAccounts table and links it to the given user id and bank.
+    public void addBankAccount(int userId, String bankName, int accountNumber){
+
+        if (bankName.isEmpty()){
+            System.out.println("Bank name cannot be empty.");
+            return;
+        }
+
+        if (accountNumber < 1){
+            System.out.println("Bank account number invalid.");
+            return;
+        }
+
+        String sqlStatement = "INSERT INTO `" + DB_NAME + "`.`BankAccounts` "
+                +   "(accountNumber, Users_userId, Banks_bankId) "
+                +   "VALUES (?, ?, (SELECT bankId FROM `" + DB_NAME + "`.`Banks` " + " WHERE name = ?))";
+
+        try {
+
+            statement = connection.prepareStatement(sqlStatement);
+            statement.setInt(1, accountNumber);
+            statement.setInt(2, userId);
+            statement.setString(3, bankName);
+
+            statement.executeUpdate();
+
+        }
+
+        //Either foreign key references doesn't exist, or another sql error occurred.
+        //We don't want users to be able to add any random bank that isn't valid into the system, so do nothing and ignore their request.
+        catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+    }
+
+    public void deleteBankAccount(int id){
+
+        if (id < 1){
+            System.out.println("Given id is less than 1.  Id must be greater than 0.");
+            return;
+        }
+
+        String sqlStatement = "DELETE FROM `" + DB_NAME + "`.`BankAccounts` WHERE id = ?";
+
+        try {
+
+            statement = connection.prepareStatement(sqlStatement);
+            statement.setInt(1, id);
+            statement.executeUpdate();
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    public void updateBankAccount(int userId, BankAccount account){
+
+        if (account.getBankAccountId() < 1){
+            System.out.println("Given id is less than 1.  Id must be greater than 0.");
+            return;
+        }
+
+        if (account.getBank() == null || account.getBank().getId() < 1){
+            System.out.println("Associated bank is invalid.");
+            return;
+        }
+
+        String sqlStatement = "UPDATE `" + DB_NAME + "`.`BankAccounts` SET accountNumber = ? AND Users_userId = ? AND Banks_bankId = ?  WHERE bankAccountId = ?";
+
+        try {
+
+            statement = connection.prepareStatement(sqlStatement);
+            statement.setInt(1, account.getAccountNumber());
+            statement.setInt(2, userId);
+            statement.setInt(3, account.getBank().getId());
+            statement.setInt(4, account.getBankAccountId());
+            statement.executeUpdate();
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
 }

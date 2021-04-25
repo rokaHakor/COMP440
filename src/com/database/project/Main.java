@@ -19,11 +19,15 @@ public class Main {
 		//Item item = new Item(0, "trash", 50000, 0.00, "");
 		//database.addInventoryItem(item);
 
-		//update tests
-		//database.updateItemStock(1, -100000);	//should fail because this would make stock go to negatives, which isn't allowed.
+		//Testing adding/removing supply from a single item's stock in the RetailInventory table.
+		//database.updateItemStock(1, -100000);		//should fail because this would make stock go to negatives, which isn't allowed.
 		//database.updateItemStock(1, 5);			//Should pass since it doesn't cause negative supply.
 
-		ArrayList<Item> itemList = new ArrayList<Item>(database.getInventoryPage(2,5));
+		//Testing getting a page of items from RetailInventory
+		//ArrayList<Item> itemList = new ArrayList<Item>(database.getInventoryPage(2,5));
 
+		//database.addUser(new User("fake account", "not password"));
+
+		//database.addBankAccount(1, "Bank of America", 15523578);
 	}
 }
