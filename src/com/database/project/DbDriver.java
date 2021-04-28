@@ -19,7 +19,7 @@ public class DbDriver {
 
     private Connection connection;
     private PreparedStatement statement;
-    private Statement createStatement;      //Used for sending queries to MySql that create/create the main database and tables.
+    private Statement createStatement;      //Used for sending queries to MySql that create the main database and tables.
 
     //Constructor for the database driver.
     public DbDriver(){
@@ -717,5 +717,173 @@ public class DbDriver {
             throwables.printStackTrace();
         }
     }
+
+    //Coupon management is only done through the backend, users do not have access to these functions.
+    public void addCoupon(Coupon coupon){
+
+        if (coupon == null || coupon.getCode().isEmpty()){
+            System.out.println("Coupon cannot be empty.");
+            return;
+        }
+
+        String sqlStatement = "INSERT INTO `" + DB_NAME + "`.`Coupons` "
+                +   "(code, description, status, discount) "
+                +   "VALUES (?,?,?,?)";
+
+        try {
+
+            statement = connection.prepareStatement(sqlStatement);
+            statement.setString(1, coupon.getCode());
+            statement.setString(2, coupon.getDescription());
+            statement.setString(3, coupon.getStatus());
+            statement.setFloat(4, coupon.getValue());
+
+            statement.executeUpdate();
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    public void updateCoupon(Coupon coupon){
+
+        if (coupon == null || coupon.getCouponID() < 1){
+            System.out.println("Coupon cannot be empty.");
+            return;
+        }
+
+        String sqlStatement = "UPDATE `" + DB_NAME + "`.`Coupons` SET code = ? AND description = ? AND status = ? AND discount = ?  WHERE couponId = ?";
+
+        try {
+
+            statement = connection.prepareStatement(sqlStatement);
+            statement.setString(1, coupon.getCode());
+            statement.setString(2, coupon.getDescription());
+            statement.setString(3, coupon.getStatus());
+            statement.setFloat(4, coupon.getValue());
+            statement.setInt(5, coupon.getCouponID());
+            statement.executeUpdate();
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    public void deleteCoupon(int id){
+
+        if (id < 1){
+            System.out.println("Given id is less than 1.  Id must be greater than 0.");
+            return;
+        }
+
+        String sqlStatement = "DELETE FROM `" + DB_NAME + "`.`Coupon` WHERE id = ?";
+
+        try {
+
+            statement = connection.prepareStatement(sqlStatement);
+            statement.setInt(1, id);
+            statement.executeUpdate();
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    //Adds a new order number using the users id, their bank account id, and an optional coupon id.
+    //Pass in coupon id < 1 if you want to leave this empty.
+    public void addOrderNumber(int userId, int bankAcctId, int couponId){
+
+        if (userId < 1 || bankAcctId < 1){
+            System.out.println("User/Bank id cannot be less than 1");
+            return;
+        }
+
+        String sqlStatement;
+
+        if (couponId < 1){
+            sqlStatement = "INSERT INTO `" + DB_NAME + "`.`OrderNumbers` "
+                    +   "(orderDate, Users_userId, BankAccounts_bankAccountId) "
+                    +   "VALUES (?,?,?)";
+        }
+
+        else {
+            sqlStatement = "INSERT INTO `" + DB_NAME + "`.`OrderNumbers` "
+                    +   "(orderDate, Users_userId, Coupons_couponId, BankAccounts_bankAccountId) "
+                    +   "VALUES (?,?,?,?)";
+        }
+
+        try {
+
+            statement = connection.prepareStatement(sqlStatement);
+            statement.setDate(1, new java.sql.Date(new java.util.Date().getTime()));
+            statement.setInt(2, userId);
+
+            if(couponId > 0) {
+                statement.setInt(3, couponId);
+                statement.setInt(4, bankAcctId);
+            }
+
+            else {
+                statement.setInt(3, bankAcctId);
+            }
+
+            statement.executeUpdate();
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    public void addSoldItem(int orderId, int itemId, int quantity, Date expectedDelivery){
+
+        if(orderId < 1 || itemId < 1 || quantity < 1){
+            System.out.println("Order id, item id, and quantity can't be less than 1.");
+            return;
+        }
+
+        String sqlStatement = "INSERT INTO `" + DB_NAME + "`.`SoldItems` "
+                +   "(quantity, status, expectedDelivery, OrderNumbers_orderId, RetailInventory_itemId) "
+                +   "VALUES (?,?,?,?,?)";
+
+        try {
+
+            statement = connection.prepareStatement(sqlStatement);
+            statement.setInt(1, quantity);
+            statement.setString(2, "In Transit");
+            statement.setDate(3, expectedDelivery);
+            statement.setInt(4, orderId);
+            statement.setInt(5, itemId);
+
+            statement.executeUpdate();
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+    }
+
+    //Sets the status of the given sold item to what is given.
+    public void setOrderStatus(int itemId, String status){
+
+        if (itemId < 1){
+            System.out.println("Id cannot be less than 1.");
+            return;
+        }
+
+        String sqlStatement = "UPDATE `" + DB_NAME + "`.`SoldItems` SET status = ? WHERE sellId = ?";
+
+        try {
+
+            statement = connection.prepareStatement(sqlStatement);
+            statement.setString(1, status);
+            statement.setInt(2, itemId);
+            statement.executeUpdate();
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+
 
 }
