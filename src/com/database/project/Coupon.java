@@ -8,6 +8,9 @@ import lombok.Value;
 public class Coupon {
 
 	int couponID;
+	String code;
+	String description;
+	String status;
 
-	double value;
+	float value;
 }
