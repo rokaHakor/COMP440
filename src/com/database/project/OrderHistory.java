@@ -1,5 +1,7 @@
 package com.database.project;
 
+import lombok.Getter;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
@@ -11,10 +13,13 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
 public class OrderHistory {
+
+
     private JTable table1;
     private JPanel orderHistoryPanel;
     private JTextField OrderHistorySearch;
-    private JPanel panelContainer;
+    @Getter
+    private JPanel mainPanel;
     private JScrollPane scrollPane1;
     private JButton ReturnToMain;
     private JPanel refundToOrderHistoryPanel;
@@ -26,9 +31,9 @@ public class OrderHistory {
     private JPanel refundNotFound;
     private JTextField textField1;
     private JPanel itemRefundSelect;
-    private CardLayout mainScreen = (CardLayout) panelContainer.getLayout();
+    private CardLayout mainScreen = (CardLayout) mainPanel.getLayout();
 
-    public OrderHistory() {
+    public OrderHistory(JFrame frame) {
         table1.setDefaultEditor(Object.class, null);
 //        table1.setRowSelectionAllowed(false);
 //        table1.setEnabled(false);
@@ -65,13 +70,13 @@ public class OrderHistory {
         requestRefundButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                mainScreen.show(panelContainer, "Card2");
+                mainScreen.show(mainPanel, "Card2");
             }
         });
         returnToOrderHistoryPanel.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                mainScreen.show(panelContainer, "Card1");
+                mainScreen.show(mainPanel, "Card1");
             }
         });
         refundSearchButton.addActionListener(new ActionListener() {
@@ -89,14 +94,14 @@ public class OrderHistory {
 //                        refundFound.revalidate();
 //                        refundFound.repaint();
                     }
-                    mainScreen.show(panelContainer, "Card3");
+                    mainScreen.show(mainPanel, "Card3");
                 }
                 catch (Exception x){
-                    mainScreen.show(panelContainer, "Card4");
+                    mainScreen.show(mainPanel, "Card4");
                 }
 //                for (int i = 0; i < data.length ; i++){
 //                    if (text.equals(MyTablemodel.getValueAt(i, 0).toString())){
-//                        mainScreen.show(panelContainer, "Card3");
+//                        mainScreen.show(mainPanel, "Card3");
 //                        return;
 //                    }
 //                }
@@ -106,7 +111,7 @@ public class OrderHistory {
     }
 
     public JPanel getPanel(){
-        return panelContainer;
+        return mainPanel;
     }
 
 }
