@@ -884,6 +884,51 @@ public class DbDriver {
         }
     }
 
+    public void addCartItem(int userId, int itemId, int quantity){
+
+        if (userId < 1 || itemId < 1 || quantity < 1){
+            System.out.println("User/Item/Quantity id cannot be less than 1");
+            return;
+        }
+
+        String sqlStatement = "INSERT INTO `" + DB_NAME + "`.`UserCart` "
+                +   "(Users_userId, RetailInventory_itemId, quantity) "
+                +   "VALUES (?,?,?)";
+
+        try {
+
+            statement = connection.prepareStatement(sqlStatement);
+            statement.setInt(1, userId);
+            statement.setInt(2, itemId);
+            statement.setInt(3, quantity);
+
+            statement.executeUpdate();
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    public void deleteCartItem(int id){
+
+        if (id < 1){
+            System.out.println("Given id is less than 1.  Id must be greater than 0.");
+            return;
+        }
+
+        String sqlStatement = "DELETE FROM `" + DB_NAME + "`.`UserCart` WHERE id = ?";
+
+        try {
+
+            statement = connection.prepareStatement(sqlStatement);
+            statement.setInt(1, id);
+            statement.executeUpdate();
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
 
 
 }
