@@ -1,10 +1,13 @@
 package com.database.project;
 
+import lombok.Getter;
+
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class MainPanel extends JFrame{
+	@Getter
 	private JPanel mainPanel;
 	//private JPanel SplashPanel;
 	private JLabel retailApplicationLabel;
@@ -16,7 +19,7 @@ public class MainPanel extends JFrame{
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				frame.getContentPane().remove(frame.getContentPane());
-				frame.setContentPane(new LoginView(frame).panel1);
+				frame.setContentPane(new LoginView(frame).mainPanel);
 				frame.revalidate();
 				frame.repaint();
 			}
