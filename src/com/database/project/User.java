@@ -1,4 +1,4 @@
-package com.database.project.HelperObjects;
+package com.database.project;
 
 public class User {
 
@@ -9,6 +9,11 @@ public class User {
     private String password;
 
     public User(){}
+
+    public User(String accountName, String password){
+        this.accountName = accountName;
+        this.password = password;
+    }
 
     public User(String firstName, String lastName, String accountName, String password){
         this.firstName = firstName;
