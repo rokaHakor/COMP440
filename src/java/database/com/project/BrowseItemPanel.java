@@ -1,5 +1,7 @@
 package database.com.project;
 
+import lombok.Getter;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -7,10 +9,14 @@ import java.net.URL;
 
 public class BrowseItemPanel extends JPanel {
 
-	private Item item;
-	private JLabel imageLabel;
-	private JLabel itemLabel;
-	private Image image;
+	@Getter
+	private final Item item;
+
+	@Getter
+	private final JLabel itemLabel;
+
+	private final JLabel imageLabel;
+	private final Image image;
 
 	public BrowseItemPanel(Item item) {
 		this.item = item;
