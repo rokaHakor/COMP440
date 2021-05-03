@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Scanner;
 
 public class DBDriver {
@@ -70,6 +71,11 @@ public class DBDriver {
 		createSoldItemsTable();
 		createUserCartTable();
 		createCouponItemsTable();
+		createAddressesTable();
+		createCitiesTable();
+		createStatesTable();
+		createCountriesTable();
+		createUserAddressesTable();
 
 		try {
 			createStatement.close();
@@ -346,6 +352,130 @@ public class DBDriver {
 				+ "CONSTRAINT `fk_CouponItems_RetailInventory`"
 				+ "FOREIGN KEY (`RetailInventory_itemId`)"
 				+ "REFERENCES `" + DB_NAME + "`.`RetailInventory` (`itemId`) "
+				+ "ON DELETE NO ACTION "
+				+ "ON UPDATE NO ACTION"
+				+ ")";
+
+		try {
+			createStatement = connection.createStatement();
+			createStatement.execute(sqlCreate);
+		} catch (SQLException se) {
+			se.printStackTrace();
+		}
+	}
+
+	private static void createAddressesTable() {
+		String sqlCreate = "CREATE TABLE IF NOT EXISTS `" + DB_NAME + "`.`Addresses`"
+				+ "("
+				+ "addressId					INT NOT NULL AUTO_INCREMENT,"
+				+ "address           			varchar(100) NOT NULL,"
+				+ "PRIMARY KEY                	(`addressId`),"
+				+ "UNIQUE INDEX       			`address_UNIQUE`            (`address` ASC) VISIBLE"
+				+ ")";
+
+		try {
+			createStatement = connection.createStatement();
+			createStatement.execute(sqlCreate);
+		} catch (SQLException se) {
+			se.printStackTrace();
+		}
+	}
+
+	private static void createCitiesTable() {
+		String sqlCreate = "CREATE TABLE IF NOT EXISTS `" + DB_NAME + "`.`Cities`"
+				+ "("
+				+ "cityId				INT NOT NULL AUTO_INCREMENT,"
+				+ "city           		varchar(100) NOT NULL,"
+				+ "PRIMARY KEY          (`cityId`),"
+				+ "UNIQUE INDEX       	`city_UNIQUE`            (`city` ASC) VISIBLE"
+				+ ")";
+
+		try {
+			createStatement = connection.createStatement();
+			createStatement.execute(sqlCreate);
+		} catch (SQLException se) {
+			se.printStackTrace();
+		}
+	}
+
+	private static void createStatesTable() {
+		String sqlCreate = "CREATE TABLE IF NOT EXISTS `" + DB_NAME + "`.`States`"
+				+ "("
+				+ "stateId				INT NOT NULL AUTO_INCREMENT,"
+				+ "state           		varchar(100) NOT NULL,"
+				+ "PRIMARY KEY          (`stateId`),"
+				+ "UNIQUE INDEX       	`state_UNIQUE`            (`state` ASC) VISIBLE"
+				+ ")";
+
+		try {
+			createStatement = connection.createStatement();
+			createStatement.execute(sqlCreate);
+		} catch (SQLException se) {
+			se.printStackTrace();
+		}
+	}
+
+	private static void createCountriesTable() {
+		String sqlCreate = "CREATE TABLE IF NOT EXISTS `" + DB_NAME + "`.`Countries`"
+				+ "("
+				+ "countryId				INT NOT NULL AUTO_INCREMENT,"
+				+ "country           		varchar(100) NOT NULL,"
+				+ "PRIMARY KEY          	(`countryId`),"
+				+ "UNIQUE INDEX       		`country_UNIQUE`            (`country` ASC) VISIBLE"
+				+ ")";
+
+		try {
+			createStatement = connection.createStatement();
+			createStatement.execute(sqlCreate);
+		} catch (SQLException se) {
+			se.printStackTrace();
+		}
+	}
+
+	//Create the Coupon Items table if it doesn't exist
+	private static void createUserAddressesTable() {
+		String sqlCreate = "CREATE TABLE IF NOT EXISTS `" + DB_NAME + "`.`UserAddresses`"
+				+ "("
+				+ "userAddressId              INT NOT NULL AUTO_INCREMENT,"
+				+ "Addresses_addressId        INT NOT NULL,"
+				+ "Cities_cityId	          INT NOT NULL,"
+				+ "States_stateId        	  INT NOT NULL,"
+				+ "Countries_countryId        INT NOT NULL,"
+				+ "Users_userId			      INT NOT NULL,"
+				+ "PRIMARY KEY                (`userAddressId`, `Addresses_addressId`, `Cities_cityId`, `States_stateId`, `Countries_countryId`, `Users_userId`),"
+				+ "INDEX                      `fk_UserAddress_Addresses_addressId_idx` (`Addresses_addressId` ASC) VISIBLE,"
+				+ "INDEX                      `fk_UserAddress_Cities_cityId_idx` (`Cities_cityId` ASC) VISIBLE,"
+				+ "INDEX                      `fk_UserAddress_States_stateId_idx` (`States_stateId` ASC) VISIBLE,"
+				+ "INDEX                      `fk_UserAddress_Countries_countryId_idx` (`Countries_countryId` ASC) VISIBLE,"
+				+ "INDEX                      `fk_UserAddress_Users_userId_idx` (`Users_userId` ASC) VISIBLE,"
+
+				+ "CONSTRAINT `fk_UserAddress_Addresses_addressId_idx`"
+				+ "FOREIGN KEY (`Addresses_addressId`)"
+				+ "REFERENCES `" + DB_NAME + "`.`Addresses` (`addressId`) "
+				+ "ON DELETE NO ACTION "
+				+ "ON UPDATE NO ACTION, "
+
+				+ "CONSTRAINT `fk_UserAddress_Cities_cityId_idx`"
+				+ "FOREIGN KEY (`Cities_cityId`)"
+				+ "REFERENCES `" + DB_NAME + "`.`Cities` (`cityId`) "
+				+ "ON DELETE NO ACTION "
+				+ "ON UPDATE NO ACTION, "
+
+				+ "CONSTRAINT `fk_UserAddress_States_stateId_idx`"
+				+ "FOREIGN KEY (`States_stateId`)"
+				+ "REFERENCES `" + DB_NAME + "`.`States` (`stateId`) "
+				+ "ON DELETE NO ACTION "
+				+ "ON UPDATE NO ACTION, "
+
+				+ "CONSTRAINT `fk_UserAddress_Countries_countryId_idx`"
+				+ "FOREIGN KEY (`Countries_countryId`)"
+				+ "REFERENCES `" + DB_NAME + "`.`Countries` (`countryId`) "
+				+ "ON DELETE NO ACTION "
+				+ "ON UPDATE NO ACTION, "
+
+				+ "CONSTRAINT `fk_UserAddresses_userId`"
+				+ "FOREIGN KEY (`Users_userId`)"
+				+ "REFERENCES `" + DB_NAME + "`.`Users` (`userId`) "
 				+ "ON DELETE NO ACTION "
 				+ "ON UPDATE NO ACTION"
 				+ ")";
@@ -905,4 +1035,233 @@ public class DBDriver {
 			throwables.printStackTrace();
 		}
 	}
+
+	//Adds a row to the Addresses table.
+	private static int addAddressEntry(String address){
+
+		if (address.isEmpty()){
+			System.out.println("address cannot be empty.");
+			return 0;
+		}
+
+		int addressKey = -1;
+		String sqlStatement = "INSERT INTO `" + DB_NAME + "`.`Addresses` (address) VALUES (?)";
+
+		try {
+			statement = connection.prepareStatement(sqlStatement, Statement.RETURN_GENERATED_KEYS);
+			statement.setString(1, address.toLowerCase());
+			addressKey = statement.executeUpdate();
+
+			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+				if (generatedKeys.next())
+					return (int)generatedKeys.getLong(1);
+			}
+		}
+
+		//Given parameter already exists in database.
+		catch (SQLException throwables) {
+
+			sqlStatement = "SELECT * FROM `" + DB_NAME + "`.`Addresses` WHERE address=?";
+
+			try {
+				statement = connection.prepareStatement(sqlStatement);
+				statement.setString(1, address);
+
+				ResultSet resultSet = statement.executeQuery();
+
+				if (!resultSet.next())
+					return -1;
+
+				else return resultSet.getInt("addressId");
+
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return addressKey;
+	}
+
+	//Adds a row to the City table.
+	private static int addCity(String city){
+
+		if (city.isEmpty()){
+			System.out.println("city cannot be empty.");
+			return 0;
+		}
+
+		int cityKey = -1;
+		String sqlStatement = "INSERT INTO `" + DB_NAME + "`.`Cities` (city) VALUES (?)";
+
+		try {
+			statement = connection.prepareStatement(sqlStatement, Statement.RETURN_GENERATED_KEYS);
+			statement.setString(1, city.toLowerCase());
+			cityKey = statement.executeUpdate();
+
+			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+				if (generatedKeys.next())
+					return (int)generatedKeys.getLong(1);
+			}
+		}
+
+		//Given parameter already exists in database.
+		catch (SQLException throwables) {
+
+			sqlStatement = "SELECT * FROM `" + DB_NAME + "`.`Cities` WHERE city=?";
+
+			try {
+				statement = connection.prepareStatement(sqlStatement);
+				statement.setString(1, city);
+
+				ResultSet resultSet = statement.executeQuery();
+
+				if (!resultSet.next())
+					return -1;
+
+				else return resultSet.getInt("cityId");
+
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return cityKey;
+	}
+
+	//Adds a row to the States table.
+	private static int addState(String state){
+
+		if (state.isEmpty()){
+			System.out.println("state cannot be empty.");
+			return 0;
+		}
+
+		int stateKey = -1;
+		String sqlStatement = "INSERT INTO `" + DB_NAME + "`.`States` (state) VALUES (?)";
+
+		try {
+			statement = connection.prepareStatement(sqlStatement, Statement.RETURN_GENERATED_KEYS);
+			statement.setString(1, state.toLowerCase());
+			stateKey = statement.executeUpdate();
+
+			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+				if (generatedKeys.next())
+					return (int)generatedKeys.getLong(1);
+			}
+		}
+
+		//Given parameter already exists in database.
+		catch (SQLException throwables) {
+
+			sqlStatement = "SELECT * FROM `" + DB_NAME + "`.`States` WHERE state=?";
+
+			try {
+				statement = connection.prepareStatement(sqlStatement);
+				statement.setString(1, state);
+
+				ResultSet resultSet = statement.executeQuery();
+
+				if (!resultSet.next())
+					return -1;
+
+				else return resultSet.getInt("stateId");
+
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return stateKey;
+	}
+
+	//Adds a row to the Country table.
+	private static int addCountry(String country){
+
+		if (country.isEmpty()){
+			System.out.println("country cannot be empty.");
+			return 0;
+		}
+
+		int countryKey = -1;
+		String sqlStatement = "INSERT INTO `" + DB_NAME + "`.`Countries` (country) VALUES (?)";
+
+		try {
+			statement = connection.prepareStatement(sqlStatement, Statement.RETURN_GENERATED_KEYS);
+			statement.setString(1, country.toLowerCase());
+			countryKey = statement.executeUpdate();
+
+			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+				if (generatedKeys.next())
+					return (int)generatedKeys.getLong(1);
+			}
+		}
+
+		//Given parameter already exists in database.
+		catch (SQLException throwables) {
+
+			sqlStatement = "SELECT * FROM `" + DB_NAME + "`.`Countries` WHERE country=?";
+
+			try {
+				statement = connection.prepareStatement(sqlStatement);
+				statement.setString(1, country);
+
+				ResultSet resultSet = statement.executeQuery();
+
+				if (!resultSet.next())
+					return -1;
+
+				else return resultSet.getInt("countryId");
+
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return countryKey;
+	}
+
+	public static void addAddressFull(int userId, Address address){
+
+		if(address == null || address.getAddress().isEmpty()){
+			System.out.println("address cannot be empty.");
+			return;
+		}
+
+		if (userId < 1){
+			System.out.println("User id can't be less than 1.");
+			return;
+		}
+
+		//Variables used to keep track of the auto generated keys for inserts (if they are necessary).
+		int addressKey = -1, cityKey = -1, stateKey = -1, countryKey = -1;
+
+		addressKey = addAddressEntry(address.getAddress());
+		cityKey = addCity(address.getCity());
+		stateKey = addState(address.getState());
+		countryKey = addCountry(address.getCountry());
+
+
+		String sqlStatement = "INSERT INTO `" + DB_NAME + "`.`UserAddresses` "
+				+ "(Addresses_addressId, Cities_cityId, States_stateId, Countries_countryId, Users_userId) "
+				+ "VALUES (?,?,?,?,?)";
+
+		try {
+
+			statement = connection.prepareStatement(sqlStatement);
+			statement.setInt(1, addressKey);
+			statement.setInt(2, cityKey);
+			statement.setInt(3, stateKey);
+			statement.setInt(4, countryKey);
+			statement.setInt(5, userId);
+
+			statement.executeUpdate();
+
+		} catch (SQLException throwables) {
+			throwables.printStackTrace();
+		}
+
+
+	}
+
+
 }
