@@ -4,6 +4,8 @@ import lombok.Getter;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class BrowseView {
 
@@ -44,5 +46,16 @@ public class BrowseView {
 			itemPanel.add(itemLabel, BorderLayout.SOUTH);
 			inventoryPanel.add(itemPanel, c);
 		}
+
+		orderHistoryButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				frame.getContentPane().remove(frame.getContentPane());
+				frame.setContentPane(new OrderHistory(frame).getPanel());
+				frame.revalidate();
+				frame.repaint();
+			}
+		});
 	}
+
 }
