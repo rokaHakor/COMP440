@@ -8,9 +8,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 
-public class LoginView {
+public class LoginView extends JFrame{
     @Getter
     public JPanel mainPanel;
+    private JPanel signUpPanel;
     private JButton registerButton;
     private JButton loginButton;
     private JPasswordField passwordField;
@@ -19,6 +20,8 @@ public class LoginView {
     private String password;
 
     public LoginView(JFrame frame){
+
+        
 
         usernameField.addFocusListener(new FocusAdapter() {
             @Override
@@ -41,7 +44,22 @@ public class LoginView {
         loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println(username + " " + password);
+                //System.out.println(username + " " + password);
+//                DBDriver database = null;
+//                User user = database.signIn(username, password);
+//                System.out.println(user.getAccountName() + " " + user.getPassword());
+
+
+            }
+        });
+        registerButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                frame.getContentPane().remove(frame.getContentPane());
+                frame.setContentPane(new SignUp(frame).signUpPanel);
+                frame.revalidate();
+                frame.repaint();
+
             }
         });
     }
