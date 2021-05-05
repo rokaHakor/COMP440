@@ -1,5 +1,7 @@
 package com.database.project;
 
+import java.util.ArrayList;
+
 public class Main {
 
 	public static void main(String[] args) {
@@ -8,8 +10,5 @@ public class Main {
 
 		DBDriver.initializeDatabase();
 
-		Address address = new Address("421 Brand", "Glendale", "CA", "US");
-
-		DBDriver.addAddressFull(2, address);
 	}
 }

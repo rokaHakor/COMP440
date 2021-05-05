@@ -628,7 +628,7 @@ public class DBDriver {
 
 	}
 
-	//Gets back a single page of data from the RetailInventory page.  Amount of items depends on page size given.
+	//Gets back an array list of a single page of data from the RetailInventory page.  Amount of items depends on page size given.
 	public static ArrayList<Item> getInventoryPage(int page, int pageSize) {
 
 		ArrayList<Item> itemlist = new ArrayList<Item>(pageSize);
@@ -1261,6 +1261,58 @@ public class DBDriver {
 		}
 
 
+	}
+
+	public static ArrayList<CartItem> getCart(int userId){
+
+		ArrayList<CartItem> cart = new ArrayList<CartItem>();
+
+		if (userId < 1){
+			System.out.println("User id cannot be less than 0");
+			return null;
+		}
+
+		String sqlStatement = "SELECT "
+				+ 	"name,"
+				+ 	"price,"
+				+ 	"description,"
+				+ 	"UserCart.cartItemId,"
+				+ 	"UserCart.quantity "
+				+	"FROM `" + DB_NAME + "`.`RetailInventory` "
+				+	"JOIN `" + DB_NAME + "`.`UserCart` "
+				+		"ON UserCart.RetailInventory_itemId = RetailInventory.itemId AND UserCart.Users_userId = ?";
+
+		try {
+
+			statement = connection.prepareStatement(sqlStatement);
+			statement.setInt(1, userId);
+
+			ResultSet resultSet = statement.executeQuery();
+
+			while (resultSet.next()) {
+
+				CartItem item;
+				String name;
+				double price;
+				String description;
+				int quantity;
+				int cartId;
+
+				name = resultSet.getString("name");
+				price = resultSet.getDouble("price");
+				description = resultSet.getString("description");
+				quantity = resultSet.getInt("quantity");
+				cartId = resultSet.getInt("cartItemId");
+
+				item = new CartItem(cartId, quantity, name, price, description);
+				cart.add(item);
+			}
+
+		} catch (SQLException throwables) {
+			throwables.printStackTrace();
+		}
+
+		return cart;
 	}
 
 
