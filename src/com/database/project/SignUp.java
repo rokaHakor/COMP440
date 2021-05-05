@@ -69,9 +69,9 @@ public class SignUp {
         signUpButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                User user = new User(firstName, lastName, username, password);
-                DBDriver.addUser(user);
-                System.out.println(user.getAccountName() + " has signed in");
+//                User user = new User(firstName, lastName, username, password);
+//                DBDriver.addUser(user);
+//                System.out.println(user.getAccountName() + " has signed in");
             }
         });
     }
