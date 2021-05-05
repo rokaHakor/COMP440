@@ -3,10 +3,10 @@ package database.com.project;
 public class Main {
 
 	public static void main(String[] args) {
+		DBDriver.initializeDatabase();
+
 		MainFrame frame = new MainFrame();
 		frame.setVisible(true);
-
-		DBDriver.initializeDatabase();
 
 		//User user = new User("first", "last", "acct", "pass");
 		//database.addUser(user);

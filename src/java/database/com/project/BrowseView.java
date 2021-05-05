@@ -41,8 +41,9 @@ public class BrowseView {
 		c.fill = GridBagConstraints.BOTH;
 		c.insets = new Insets(10, 10, 10, 10);
 
-		for (int x = 0; x < 100; x++) {
-			Item item = new Item(1, "Chair", 1, 12.99 + (x % 2), "");
+		Inventory inventory = DBDriver.getInventoryPage(1, 100);
+
+		for (Item item : inventory.getAllItems()) {
 			BrowseItemPanel itemPanel = new BrowseItemPanel(item);
 			itemPanel.addMouseListener(new MouseAdapter() {
 				@Override
@@ -58,15 +59,12 @@ public class BrowseView {
 		}
 
 		getSettingsAndSort();
+		resizeComponents(frame);
 
 		inventoryPanel.addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentResized(ComponentEvent e) {
-				for (JPanel itemPanel : itemPanels) {
-					int size = (frame.getWidth() - 160) / 5;
-					itemPanel.setPreferredSize(new Dimension(size, size));
-					itemPanel.setSize(new Dimension(size, size));
-				}
+				resizeComponents(frame);
 			}
 		});
 
@@ -85,6 +83,7 @@ public class BrowseView {
 		});
 
 		logoutButton.addActionListener(e -> {
+			Cart.getCart().clear();
 			frame.getContentPane().remove(frame.getContentPane());
 			frame.setContentPane(new LoginView(frame).getMainPanel());
 			frame.revalidate();
@@ -115,6 +114,14 @@ public class BrowseView {
 
 			}
 		});
+	}
+
+	public void resizeComponents(Frame frame) {
+		for (JPanel itemPanel : itemPanels) {
+			int size = (frame.getWidth() - 160) / 5;
+			itemPanel.setPreferredSize(new Dimension(size, size));
+			itemPanel.setSize(new Dimension(size, size));
+		}
 	}
 
 	public void getSettingsAndSort() {

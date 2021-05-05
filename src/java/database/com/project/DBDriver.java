@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class DBDriver {
@@ -70,6 +71,7 @@ public class DBDriver {
 		createSoldItemsTable();
 		createUserCartTable();
 		createCouponItemsTable();
+		addDummyData();
 
 		try {
 			createStatement.close();
@@ -358,6 +360,36 @@ public class DBDriver {
 		}
 	}
 
+	private static void addDummyData() {
+		Inventory databaseItems = getInventoryPage(1,100);
+		Item chair = new Item(1, "Chair", 10, 12.99, "A nice chair.");
+		Item ps5 = new Item(2, "Playstation 5", 0, 399.99, "A nice PS5.");
+		Item keyboard = new Item(3, "Keyboard", 5, 22.99, "A nice keyboard.");
+		Item table = new Item(4, "Table", 8, 34.99, "A nice table.");
+		Item tv = new Item(5, "Television", 2, 119.99, "A nice tv.");
+		Item piano = new Item(6, "Piano", 1, 1229.99, "A nice piano.");
+
+
+		if(!databaseItems.containsItem(chair)){
+			addInventoryItem(chair);
+		}
+		if(!databaseItems.containsItem(ps5)){
+			addInventoryItem(ps5);
+		}
+		if(!databaseItems.containsItem(keyboard)){
+			addInventoryItem(keyboard);
+		}
+		if(!databaseItems.containsItem(table)){
+			addInventoryItem(table);
+		}
+		if(!databaseItems.containsItem(tv)){
+			addInventoryItem(tv);
+		}
+		if(!databaseItems.containsItem(piano)){
+			addInventoryItem(piano);
+		}
+	}
+
 	//Inserts a new user entry into the Users table based on the data obtained from the Sign Up view.
 	public static void addUser(User user) {
 
@@ -499,13 +531,12 @@ public class DBDriver {
 	}
 
 	//Gets back a single page of data from the RetailInventory page.  Amount of items depends on page size given.
-	public static ArrayList<Item> getInventoryPage(int page, int pageSize) {
+	public static Inventory getInventoryPage(int page, int pageSize) {
 
-		ArrayList<Item> itemlist = new ArrayList<Item>(pageSize);
+		Inventory itemlist = new Inventory();
 		String sqlStatement = "SELECT * FROM `" + DB_NAME + "`.RetailInventory LIMIT " + String.valueOf((page - 1) * pageSize) + ", " + String.valueOf(pageSize);
 
 		try {
-
 			statement = connection.prepareStatement(sqlStatement);
 			ResultSet results = statement.executeQuery();
 
@@ -519,7 +550,7 @@ public class DBDriver {
 
 				Item item = new Item(id, name, quantity, price, description);
 
-				itemlist.add(item);
+				itemlist.addItem(item);
 			}
 
 		} catch (SQLException throwables) {
