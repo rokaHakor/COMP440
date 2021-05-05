@@ -1,5 +1,7 @@
 package com.database.project;
 
+import lombok.Getter;
+
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -7,7 +9,8 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 
 public class SignUp {
-    public JPanel signUpPanel;
+    @Getter
+    public JPanel mainPanel;
     private JTextField usernameField;
     private JTextField firstNameField;
     private JTextField lastNameField;

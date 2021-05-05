@@ -49,7 +49,7 @@ public class BrowseView {
 				@Override
 				public void mouseClicked(MouseEvent e) {
 					frame.getContentPane().remove(frame.getContentPane());
-					//frame.setContentPane(new ItemView(frame).getMainPanel());
+					frame.setContentPane(new ItemView(frame).getMainPanel());
 					frame.revalidate();
 					frame.repaint();
 					super.mouseClicked(e);

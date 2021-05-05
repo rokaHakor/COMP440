@@ -44,19 +44,17 @@ public class LoginView extends JFrame{
         loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //System.out.println(username + " " + password);
-//                DBDriver com.database = null;
-//                User user = com.database.signIn(username, password);
-//                System.out.println(user.getAccountName() + " " + user.getPassword());
-
-
+                frame.getContentPane().remove(frame.getContentPane());
+                frame.setContentPane(new BrowseView(frame).getMainPanel());
+                frame.revalidate();
+                frame.repaint();
             }
         });
         registerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 frame.getContentPane().remove(frame.getContentPane());
-                frame.setContentPane(new SignUp(frame).signUpPanel);
+                frame.setContentPane(new SignUp(frame).mainPanel);
                 frame.revalidate();
                 frame.repaint();
 
