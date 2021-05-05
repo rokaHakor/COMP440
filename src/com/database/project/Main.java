@@ -1,14 +1,12 @@
 package com.database.project;
 
-import java.util.ArrayList;
-
 public class Main {
 
 	public static void main(String[] args) {
 		MainFrame frame = new MainFrame();
 		frame.setVisible(true);
 
-		DbDriver database = new DbDriver();
+		DBDriver.initializeDatabase();
 
 		//User user = new User("first", "last", "acct", "pass");
 		//database.addUser(user);

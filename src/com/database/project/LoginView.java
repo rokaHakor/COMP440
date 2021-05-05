@@ -1,5 +1,7 @@
 package com.database.project;
 
+import lombok.Getter;
+
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -7,7 +9,8 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 
 public class LoginView {
-    public JPanel panel1;
+    @Getter
+    public JPanel mainPanel;
     private JButton registerButton;
     private JButton loginButton;
     private JPasswordField passwordField;
