@@ -1016,19 +1016,42 @@ public class DBDriver {
 		}
 	}
 
-	public static void deleteCartItem(int id) {
+	//Deletes a single item from the users cart using the id of the cart item.
+	public static void deleteCartItem_Single(int cartItemId, int userId) {
 
-		if (id < 1) {
-			System.out.println("Given id is less than 1.  Id must be greater than 0.");
+		if (cartItemId < 1 || userId < 1) {
+			System.out.println("Given ids are less than 1.  Id must be greater than 0.");
 			return;
 		}
 
-		String sqlStatement = "DELETE FROM `" + DB_NAME + "`.`UserCart` WHERE id = ?";
+		String sqlStatement = "DELETE FROM `" + DB_NAME + "`.`UserCart` WHERE cartItemId = ? AND Users_userId = ?";
 
 		try {
 
 			statement = connection.prepareStatement(sqlStatement);
-			statement.setInt(1, id);
+			statement.setInt(1, cartItemId);
+			statement.setInt(2, userId);
+			statement.executeUpdate();
+
+		} catch (SQLException throwables) {
+			throwables.printStackTrace();
+		}
+	}
+
+	//Clears the users cart.  Only called when the user confirms a purchase.
+	private static void deleteCartItem_All(int userId) {
+
+		if (userId < 1) {
+			System.out.println("Given id is less than 1.  Id must be greater than 0.");
+			return;
+		}
+
+		String sqlStatement = "DELETE FROM `" + DB_NAME + "`.`UserCart` WHERE Users_userId = ?";
+
+		try {
+
+			statement = connection.prepareStatement(sqlStatement);
+			statement.setInt(1, userId);
 			statement.executeUpdate();
 
 		} catch (SQLException throwables) {
@@ -1263,6 +1286,7 @@ public class DBDriver {
 
 	}
 
+	//Gets a list of all the items that belong in the users cart.
 	public static ArrayList<CartItem> getCart(int userId){
 
 		ArrayList<CartItem> cart = new ArrayList<CartItem>();
