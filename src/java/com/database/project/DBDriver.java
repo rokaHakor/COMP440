@@ -1,7 +1,9 @@
 package com.database.project;
 
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.*;
 import java.util.Scanner;
 
@@ -27,6 +29,17 @@ public class DBDriver {
 	public static void initializeDatabase() {
 		try {
 			File fileObj = new File("Database Config.txt");
+			if (fileObj.createNewFile()) {
+				System.out.println("Created Database Config.txt file");
+				BufferedWriter writer = new BufferedWriter(new FileWriter(fileObj));
+				writer.write("Database Name: retaildb");
+				writer.newLine();
+				writer.write("User Name: ");
+				writer.newLine();
+				writer.write("Password: ");
+				writer.close();
+			}
+
 			Scanner reader = new Scanner(fileObj);
 
 			while (reader.hasNextLine()) {
@@ -55,9 +68,10 @@ public class DBDriver {
 				}
 
 			}//End of config read loop.
-		} catch (FileNotFoundException e) {
+		} //End of config initialization.
+		catch (IOException e) {
 			e.printStackTrace();
-		}//End of config initialization.
+		}
 
 		createDatabase();
 		createUsersTable();
