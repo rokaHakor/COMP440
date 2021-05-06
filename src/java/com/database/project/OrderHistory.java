@@ -1,5 +1,7 @@
 package com.database.project;
 
+import lombok.Getter;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
@@ -27,6 +29,7 @@ public class OrderHistory {
     private JTable table2;
     private JButton cartButton;
     private JButton orderHistoryButton;
+    @Getter
     private JPanel mainPanel;
     private JButton logoutButton;
     private CardLayout mainScreen = (CardLayout) panelContainer.getLayout();

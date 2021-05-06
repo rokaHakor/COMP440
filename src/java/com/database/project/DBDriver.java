@@ -3,13 +3,11 @@ package com.database.project;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Locale;
 import java.util.Scanner;
 
 public class DBDriver {
 
-	// JDBC driver name and database URL
+	// JDBC driver name and com.database URL
 	private static final String JDBC_DRIVER = "com.mysql.cj.jdbc.Driver";
 	private static final String DB_URL = "jdbc:mysql://localhost:3306/";
 	private static String DB_NAME = "mydb";
@@ -20,7 +18,7 @@ public class DBDriver {
 
 	private static Connection connection;
 	private static PreparedStatement statement;
-	private static Statement createStatement;      //Used for sending queries to MySql that create the main database and tables.
+	private static Statement createStatement;      //Used for sending queries to MySql that create the main com.database and tables.
 
 	private DBDriver() {
 
@@ -76,6 +74,7 @@ public class DBDriver {
 		createStatesTable();
 		createCountriesTable();
 		createUserAddressesTable();
+		addDummyData();
 
 		try {
 			createStatement.close();
@@ -84,7 +83,7 @@ public class DBDriver {
 		}
 	}
 
-	//Connect to MySql localhost and create a new database if one doesn't exist.
+	//Connect to MySql localhost and create a new com.database if one doesn't exist.
 	//Uses the Database Configuration text file in the main executable directory.
 	private static void createDatabase() {
 
@@ -364,6 +363,36 @@ public class DBDriver {
 		}
 	}
 
+	private static void addDummyData() {
+		Inventory databaseItems = getInventoryPage(1, 100);
+		Item chair = new Item(1, "Chair", 10, 12.99, "A nice chair.");
+		Item ps5 = new Item(2, "Playstation 5", 0, 399.99, "A nice PS5.");
+		Item keyboard = new Item(3, "Keyboard", 5, 22.99, "A nice keyboard.");
+		Item table = new Item(4, "Table", 8, 34.99, "A nice table.");
+		Item tv = new Item(5, "Television", 2, 119.99, "A nice tv.");
+		Item piano = new Item(6, "Piano", 1, 1229.99, "A nice piano.");
+
+
+		if (!databaseItems.containsItem(chair)) {
+			addInventoryItem(chair);
+		}
+		if (!databaseItems.containsItem(ps5)) {
+			addInventoryItem(ps5);
+		}
+		if (!databaseItems.containsItem(keyboard)) {
+			addInventoryItem(keyboard);
+		}
+		if (!databaseItems.containsItem(table)) {
+			addInventoryItem(table);
+		}
+		if (!databaseItems.containsItem(tv)) {
+			addInventoryItem(tv);
+		}
+		if (!databaseItems.containsItem(piano)) {
+			addInventoryItem(piano);
+		}
+	}
+
 	private static void createAddressesTable() {
 		String sqlCreate = "CREATE TABLE IF NOT EXISTS `" + DB_NAME + "`.`Addresses`"
 				+ "("
@@ -509,6 +538,7 @@ public class DBDriver {
 			statement.setString(4, user.getPassword());
 
 			statement.executeUpdate();
+			System.out.println("Added user " + user.getAccountName() + " to database!");
 
 		} catch (SQLException throwables) {
 			throwables.printStackTrace();
@@ -628,14 +658,13 @@ public class DBDriver {
 
 	}
 
-	//Gets back an array list of a single page of data from the RetailInventory page.  Amount of items depends on page size given.
-	public static ArrayList<Item> getInventoryPage(int page, int pageSize) {
+	//Gets back an Inventory object of a single page of data from the RetailInventory page.  Amount of items depends on page size given.
+	public static Inventory getInventoryPage(int page, int pageSize) {
 
-		ArrayList<Item> itemlist = new ArrayList<Item>(pageSize);
+		Inventory itemlist = new Inventory();
 		String sqlStatement = "SELECT * FROM `" + DB_NAME + "`.RetailInventory LIMIT " + String.valueOf((page - 1) * pageSize) + ", " + String.valueOf(pageSize);
 
 		try {
-
 			statement = connection.prepareStatement(sqlStatement);
 			ResultSet results = statement.executeQuery();
 
@@ -649,7 +678,7 @@ public class DBDriver {
 
 				Item item = new Item(id, name, quantity, price, description);
 
-				itemlist.add(item);
+				itemlist.addItem(item);
 			}
 
 		} catch (SQLException throwables) {
@@ -1027,12 +1056,10 @@ public class DBDriver {
 		String sqlStatement = "DELETE FROM `" + DB_NAME + "`.`UserCart` WHERE cartItemId = ? AND Users_userId = ?";
 
 		try {
-
 			statement = connection.prepareStatement(sqlStatement);
 			statement.setInt(1, cartItemId);
 			statement.setInt(2, userId);
 			statement.executeUpdate();
-
 		} catch (SQLException throwables) {
 			throwables.printStackTrace();
 		}
@@ -1060,9 +1087,9 @@ public class DBDriver {
 	}
 
 	//Adds a row to the Addresses table.
-	private static int addAddressEntry(String address){
+	private static int addAddressEntry(String address) {
 
-		if (address.isEmpty()){
+		if (address.isEmpty()) {
 			System.out.println("address cannot be empty.");
 			return 0;
 		}
@@ -1077,11 +1104,11 @@ public class DBDriver {
 
 			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
 				if (generatedKeys.next())
-					return (int)generatedKeys.getLong(1);
+					return (int) generatedKeys.getLong(1);
 			}
 		}
 
-		//Given parameter already exists in database.
+		//Given parameter already exists in com.database.
 		catch (SQLException throwables) {
 
 			sqlStatement = "SELECT * FROM `" + DB_NAME + "`.`Addresses` WHERE address=?";
@@ -1106,9 +1133,9 @@ public class DBDriver {
 	}
 
 	//Adds a row to the City table.
-	private static int addCity(String city){
+	private static int addCity(String city) {
 
-		if (city.isEmpty()){
+		if (city.isEmpty()) {
 			System.out.println("city cannot be empty.");
 			return 0;
 		}
@@ -1123,11 +1150,11 @@ public class DBDriver {
 
 			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
 				if (generatedKeys.next())
-					return (int)generatedKeys.getLong(1);
+					return (int) generatedKeys.getLong(1);
 			}
 		}
 
-		//Given parameter already exists in database.
+		//Given parameter already exists in com.database.
 		catch (SQLException throwables) {
 
 			sqlStatement = "SELECT * FROM `" + DB_NAME + "`.`Cities` WHERE city=?";
@@ -1152,9 +1179,9 @@ public class DBDriver {
 	}
 
 	//Adds a row to the States table.
-	private static int addState(String state){
+	private static int addState(String state) {
 
-		if (state.isEmpty()){
+		if (state.isEmpty()) {
 			System.out.println("state cannot be empty.");
 			return 0;
 		}
@@ -1169,11 +1196,11 @@ public class DBDriver {
 
 			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
 				if (generatedKeys.next())
-					return (int)generatedKeys.getLong(1);
+					return (int) generatedKeys.getLong(1);
 			}
 		}
 
-		//Given parameter already exists in database.
+		//Given parameter already exists in com.database.
 		catch (SQLException throwables) {
 
 			sqlStatement = "SELECT * FROM `" + DB_NAME + "`.`States` WHERE state=?";
@@ -1198,9 +1225,9 @@ public class DBDriver {
 	}
 
 	//Adds a row to the Country table.
-	private static int addCountry(String country){
+	private static int addCountry(String country) {
 
-		if (country.isEmpty()){
+		if (country.isEmpty()) {
 			System.out.println("country cannot be empty.");
 			return 0;
 		}
@@ -1215,11 +1242,11 @@ public class DBDriver {
 
 			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
 				if (generatedKeys.next())
-					return (int)generatedKeys.getLong(1);
+					return (int) generatedKeys.getLong(1);
 			}
 		}
 
-		//Given parameter already exists in database.
+		//Given parameter already exists in com.database.
 		catch (SQLException throwables) {
 
 			sqlStatement = "SELECT * FROM `" + DB_NAME + "`.`Countries` WHERE country=?";
@@ -1243,14 +1270,14 @@ public class DBDriver {
 		return countryKey;
 	}
 
-	public static void addAddressFull(int userId, Address address){
+	public static void addAddressFull(int userId, com.database.project.Address address) {
 
-		if(address == null || address.getAddress().isEmpty()){
+		if (address == null || address.getAddress().isEmpty()) {
 			System.out.println("address cannot be empty.");
 			return;
 		}
 
-		if (userId < 1){
+		if (userId < 1) {
 			System.out.println("User id can't be less than 1.");
 			return;
 		}
@@ -1287,24 +1314,24 @@ public class DBDriver {
 	}
 
 	//Gets a list of all the items that belong in the users cart.
-	public static ArrayList<CartItem> getCart(int userId){
+	public static Cart getCart(int userId) {
 
-		ArrayList<CartItem> cart = new ArrayList<CartItem>();
-
-		if (userId < 1){
+		Cart.getCart().clear();
+		if (userId < 1) {
 			System.out.println("User id cannot be less than 0");
-			return null;
+			Cart.getCart().clear();
+			return Cart.getCart();
 		}
 
 		String sqlStatement = "SELECT "
-				+ 	"name,"
-				+ 	"price,"
-				+ 	"description,"
-				+ 	"UserCart.cartItemId,"
-				+ 	"UserCart.quantity "
-				+	"FROM `" + DB_NAME + "`.`RetailInventory` "
-				+	"JOIN `" + DB_NAME + "`.`UserCart` "
-				+		"ON UserCart.RetailInventory_itemId = RetailInventory.itemId AND UserCart.Users_userId = ?";
+				+ "name,"
+				+ "price,"
+				+ "description,"
+				+ "RetailInventory.itemId,"
+				+ "UserCart.quantity "
+				+ "FROM `" + DB_NAME + "`.`RetailInventory` "
+				+ "JOIN `" + DB_NAME + "`.`UserCart` "
+				+ "ON UserCart.RetailInventory_itemId = RetailInventory.itemId AND UserCart.Users_userId = ?";
 
 		try {
 
@@ -1315,7 +1342,7 @@ public class DBDriver {
 
 			while (resultSet.next()) {
 
-				CartItem item;
+				Item item;
 				String name;
 				double price;
 				String description;
@@ -1326,18 +1353,16 @@ public class DBDriver {
 				price = resultSet.getDouble("price");
 				description = resultSet.getString("description");
 				quantity = resultSet.getInt("quantity");
-				cartId = resultSet.getInt("cartItemId");
+				cartId = resultSet.getInt("itemId");
 
-				item = new CartItem(cartId, quantity, name, price, description);
-				cart.add(item);
+				item = new Item(cartId, name, quantity, price, description);
+				Cart.getCart().add(item);
 			}
 
 		} catch (SQLException throwables) {
 			throwables.printStackTrace();
 		}
 
-		return cart;
+		return Cart.getCart();
 	}
-
-
 }

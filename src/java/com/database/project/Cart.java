@@ -9,6 +9,8 @@ import java.util.List;
 
 public class Cart {
 
+	private static Cart cart = null;
+
 	private final HashMap<Integer, Item> cartItems = new HashMap<>();
 
 	private double totalPrice;
@@ -17,9 +19,16 @@ public class Cart {
 	@Getter
 	private Coupon coupon;
 
-	public Cart() {
+	private Cart() {
 		totalPrice = 0;
 		coupon = null;
+	}
+
+	public static Cart getCart() {
+		if (cart == null) {
+			cart = new Cart();
+		}
+		return cart;
 	}
 
 	public void add(Item item) {
