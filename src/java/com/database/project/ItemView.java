@@ -87,7 +87,7 @@ public class ItemView {
 
 	private void resizeComponents(JFrame frame) {
 		int width = (frame.getWidth() - 160);
-		int height = (frame.getHeight()) / 3;
+		int height = (frame.getHeight()) / 2;
 		setSize(new Dimension(width, height));
 	}
 
