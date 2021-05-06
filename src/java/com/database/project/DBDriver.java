@@ -876,7 +876,7 @@ public class DBDriver {
 			statement.setString(1, coupon.getCode());
 			statement.setString(2, coupon.getDescription());
 			statement.setString(3, coupon.getStatus());
-			statement.setFloat(4, coupon.getValue());
+			statement.setFloat(4, coupon.getDiscount());
 
 			statement.executeUpdate();
 
@@ -900,7 +900,7 @@ public class DBDriver {
 			statement.setString(1, coupon.getCode());
 			statement.setString(2, coupon.getDescription());
 			statement.setString(3, coupon.getStatus());
-			statement.setFloat(4, coupon.getValue());
+			statement.setFloat(4, coupon.getDiscount());
 			statement.setInt(5, coupon.getCouponID());
 			statement.executeUpdate();
 

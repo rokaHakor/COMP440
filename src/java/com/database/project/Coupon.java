@@ -12,5 +12,5 @@ public class Coupon {
 	String description;
 	String status;
 
-	float value;
+	float discount;
 }
