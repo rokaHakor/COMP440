@@ -1,3 +1,0 @@
-Database Name: retaildb
-User Name: root
-Password: COMP440Pass!
