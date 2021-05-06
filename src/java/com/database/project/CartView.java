@@ -21,15 +21,6 @@ public class CartView {
 
 	private final ArrayList<CartPanel> itemPanels = new ArrayList<>();
 
-	static {
-		Cart cart = Cart.getCart();
-		cart.add(new Item(1, "Chair", 1, 12.99, ""));
-		cart.add(new Item(2, "Chair", 1, 13.99, ""));
-		cart.add(new Item(3, "Chair", 1, 14.99, ""));
-		cart.add(new Item(4, "Chair", 1, 15.99, ""));
-		cart.add(new Item(5, "Chair", 1, 16.99, ""));
-	}
-
 	public CartView(JFrame frame) {
 		scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
@@ -56,6 +47,7 @@ public class CartView {
 
 		logoutButton.addActionListener(e -> {
 			Cart.getCart().clear();
+			Main.setUser(null);
 			frame.getContentPane().remove(frame.getContentPane());
 			frame.setContentPane(new LoginView(frame).getMainPanel());
 			frame.revalidate();
@@ -68,7 +60,7 @@ public class CartView {
 		c.fill = GridBagConstraints.BOTH;
 		c.insets = new Insets(10, 10, 10, 10);
 
-		Cart cart = Cart.getCart();
+		Cart cart = DBDriver.getCart(Main.getUser().getId());
 
 		for (Item item : cart.items()) {
 			CartPanel cartPanel = new CartPanel(item);

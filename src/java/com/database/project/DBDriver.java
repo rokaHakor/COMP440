@@ -3,7 +3,6 @@ package com.database.project;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.Scanner;
 
 public class DBDriver {
@@ -539,6 +538,7 @@ public class DBDriver {
 			statement.setString(4, user.getPassword());
 
 			statement.executeUpdate();
+			System.out.println("Added user " + user.getAccountName() + " to database!");
 
 		} catch (SQLException throwables) {
 			throwables.printStackTrace();
@@ -1056,12 +1056,10 @@ public class DBDriver {
 		String sqlStatement = "DELETE FROM `" + DB_NAME + "`.`UserCart` WHERE cartItemId = ? AND Users_userId = ?";
 
 		try {
-
 			statement = connection.prepareStatement(sqlStatement);
 			statement.setInt(1, cartItemId);
 			statement.setInt(2, userId);
 			statement.executeUpdate();
-
 		} catch (SQLException throwables) {
 			throwables.printStackTrace();
 		}
@@ -1316,20 +1314,20 @@ public class DBDriver {
 	}
 
 	//Gets a list of all the items that belong in the users cart.
-	public static ArrayList<CartItem> getCart(int userId) {
+	public static Cart getCart(int userId) {
 
-		ArrayList<CartItem> cart = new ArrayList<CartItem>();
-
+		Cart.getCart().clear();
 		if (userId < 1) {
 			System.out.println("User id cannot be less than 0");
-			return null;
+			Cart.getCart().clear();
+			return Cart.getCart();
 		}
 
 		String sqlStatement = "SELECT "
 				+ "name,"
 				+ "price,"
 				+ "description,"
-				+ "UserCart.cartItemId,"
+				+ "RetailInventory.itemId,"
 				+ "UserCart.quantity "
 				+ "FROM `" + DB_NAME + "`.`RetailInventory` "
 				+ "JOIN `" + DB_NAME + "`.`UserCart` "
@@ -1344,7 +1342,7 @@ public class DBDriver {
 
 			while (resultSet.next()) {
 
-				CartItem item;
+				Item item;
 				String name;
 				double price;
 				String description;
@@ -1355,18 +1353,16 @@ public class DBDriver {
 				price = resultSet.getDouble("price");
 				description = resultSet.getString("description");
 				quantity = resultSet.getInt("quantity");
-				cartId = resultSet.getInt("cartItemId");
+				cartId = resultSet.getInt("itemId");
 
-				item = new CartItem(cartId, quantity, name, price, description);
-				cart.add(item);
+				item = new Item(cartId, name, quantity, price, description);
+				Cart.getCart().add(item);
 			}
 
 		} catch (SQLException throwables) {
 			throwables.printStackTrace();
 		}
 
-		return cart;
+		return Cart.getCart();
 	}
-
-
 }
