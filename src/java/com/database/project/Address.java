@@ -12,4 +12,9 @@ public class Address {
     private String city;
     private String state;
     private String country;
+
+    @Override
+    public String toString(){
+        return address;
+    }
 }

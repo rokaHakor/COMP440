@@ -45,7 +45,7 @@ public class CartPanel extends JPanel {
 		quantityCombo.setAlignmentY(Component.CENTER_ALIGNMENT);
 		other.add(quantityCombo, BorderLayout.CENTER);
 
-		this.totalPriceLabel = new JLabel("     Total: $" + (item.getQuantity() * item.getPrice()));
+		this.totalPriceLabel = new JLabel("     Total: $" + String.format("%,.2f", (item.getQuantity() * item.getPrice())));
 		this.totalPriceLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 		other.add(this.totalPriceLabel, BorderLayout.EAST);
 		add(other);

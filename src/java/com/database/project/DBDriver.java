@@ -1060,14 +1060,14 @@ public class DBDriver {
 	}
 
 	//Deletes a single item from the users cart using the id of the cart item.
-	public static void deleteCartItem_Single(int cartItemId, int userId) {
+	public static void deleteCartItem_Single(int userId, int cartItemId) {
 
 		if (cartItemId < 1 || userId < 1) {
 			System.out.println("Given ids are less than 1.  Id must be greater than 0.");
 			return;
 		}
 
-		String sqlStatement = "DELETE FROM `" + DB_NAME + "`.`UserCart` WHERE cartItemId = ? AND Users_userId = ?";
+		String sqlStatement = "DELETE FROM `" + DB_NAME + "`.`UserCart` WHERE RetailInventory_itemId = ? AND Users_userId = ?";
 
 		try {
 			statement = connection.prepareStatement(sqlStatement);
@@ -1284,7 +1284,7 @@ public class DBDriver {
 		return countryKey;
 	}
 
-	public static void addAddressFull(int userId, com.database.project.Address address) {
+	public static void addAddressFull(int userId, Address address) {
 
 		if (address == null || address.getAddress().isEmpty()) {
 			System.out.println("address cannot be empty.");

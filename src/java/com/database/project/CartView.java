@@ -68,6 +68,7 @@ public class CartView {
 				int quantity = cartPanel.getQuantityCombo().getSelectedIndex();
 				if (quantity == 0) {
 					cart.remove(item);
+					DBDriver.deleteCartItem_Single(Main.getUser().getId(), item.getItemID());
 					SwingUtilities.invokeLater(() ->
 					{
 						frame.getContentPane().remove(frame.getContentPane());
@@ -83,15 +84,15 @@ public class CartView {
 				} else {
 					cart.remove(new Item(item, item.getQuantity() - quantity));
 				}
-				cartPanel.getTotalPriceLabel().setText("     Total: $" + (item.getQuantity() * item.getPrice()));
-				grandTotal.setText("Grand Total: $" + cart.getTotalPrice());
+				cartPanel.getTotalPriceLabel().setText("     Total: $" + String.format("%,.2f", (item.getQuantity() * item.getPrice())));
+				grandTotal.setText("Grand Total: $" + String.format("%,.2f", cart.getTotalPrice()));
 			});
 			itemPanels.add(cartPanel);
 			cartsPanel.add(cartPanel, c);
 			c.gridy++;
 		}
 
-		grandTotal.setText("Grand Total: $" + cart.getTotalPrice());
+		grandTotal.setText("Grand Total: $" + String.format("%,.2f", cart.getTotalPrice()));
 
 		cartsPanel.addComponentListener(new ComponentAdapter() {
 			@Override
