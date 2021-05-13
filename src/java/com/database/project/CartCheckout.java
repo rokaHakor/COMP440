@@ -7,7 +7,6 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.PlainDocument;
-import java.awt.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,11 +27,11 @@ public class CartCheckout extends JFrame {
 	private JTextField couponText;
 	private JTextField stateText;
 	private JButton saveAddressButton;
-	private JComboBox savedBanks;
+	private JComboBox<BankAccount> savedBanks;
 	private JButton saveBankButton;
 	private JTextField cityText;
 	private JTextField addressText;
-	private JComboBox savedAddresses;
+	private JComboBox<Address> savedAddresses;
 	private JLabel errorLabel;
 
 	public CartCheckout(JFrame frame) {
