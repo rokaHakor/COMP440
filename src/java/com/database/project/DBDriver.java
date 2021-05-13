@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class DBDriver {
@@ -1378,5 +1379,58 @@ public class DBDriver {
 		}
 
 		return Cart.getCart();
+	}
+
+	//Gets a list of all the items that belong in the users cart.
+	public static ArrayList<Address> getAddresses(int userId) {
+
+		ArrayList<Address> addresses = new ArrayList<Address>();
+
+		if (userId < 1) {
+			System.out.println("User id cannot be less than 0");
+			Cart.getCart().clear();
+			return addresses;
+		}
+
+		String sqlStatement = "SELECT "
+				+ "Addresses.address,"
+				+ "Cities.city,"
+				+ "States.state,"
+				+ "Countries.country,"
+				+ "UserAddresses.userAddressId "
+				+ "FROM `" + DB_NAME + "`.`UserAddresses` "
+				+ "JOIN `" + DB_NAME + "`.`Addresses` "
+				+ "ON UserAddresses.Addresses_addressId = Addresses.addressId AND UserAddresses.Users_userId = " + userId + " "
+				+ "JOIN `" + DB_NAME + "`.`Cities` "
+				+ "ON UserAddresses.Cities_cityId = Cities.cityId AND UserAddresses.Users_userId = " + userId + " "
+				+ "JOIN `" + DB_NAME + "`.`States` "
+				+ "ON UserAddresses.States_stateId = States.stateId AND UserAddresses.Users_userId = " + userId + " "
+				+ "JOIN `" + DB_NAME + "`.`Countries` "
+				+ "ON UserAddresses.Countries_countryId = Countries.countryId AND UserAddresses.Users_userId = " + userId + " ";
+
+		try {
+
+			statement = connection.prepareStatement(sqlStatement);
+
+			ResultSet resultSet = statement.executeQuery();
+
+			while (resultSet.next()) {
+
+				Address address;
+				String addressName = resultSet.getString("address");
+				String city = resultSet.getString("city");
+				String state = resultSet.getString("state");
+				String country = resultSet.getString("country");
+				int userAddressId = resultSet.getInt("userAddressId");
+
+				address = new Address(userAddressId, addressName, city, state, country);
+				addresses.add(address);
+			}
+
+		} catch (SQLException throwables) {
+			throwables.printStackTrace();
+		}
+
+		return addresses;
 	}
 }
