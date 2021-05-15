@@ -17,8 +17,7 @@ public class Main {
 		MainFrame frame = new MainFrame();
 		frame.setVisible(true);
 
-		ArrayList<Address> addresses =  DBDriver.getAddresses(1);
 
-		System.out.println("got addresses");
+
 	}
 }

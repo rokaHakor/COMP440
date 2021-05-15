@@ -109,7 +109,7 @@ public class CartCheckout extends JFrame {
 			return null;
 		}
 
-		return new Address(address, city, state, country);
+		return new Address(0, address, city, state, country);
 	}
 
 	private void saveBank() {

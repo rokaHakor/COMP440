@@ -725,11 +725,13 @@ public class DBDriver {
 	}
 
 	//Adds a new bank vendor to the Banks table.  Not used by the consumer, only the retail manager to keep a list of approved vendors.
-	public static void addBank(String name) {
+	public static int addBank(String name) {
 		if (name.isEmpty()) {
 			System.out.println("Bank name cannot be empty.");
-			return;
+			return 0;
 		}
+
+		int bankId = 0;
 
 		String sqlStatement = "INSERT INTO `" + DB_NAME + "`.`Banks` "
 				+ "(name) "
@@ -740,11 +742,29 @@ public class DBDriver {
 			statement = connection.prepareStatement(sqlStatement);
 			statement.setString(1, name);
 
-			statement.executeUpdate();
+			bankId = statement.executeUpdate();
 
 		} catch (SQLException throwables) {
-			throwables.printStackTrace();
+
+			sqlStatement = "SELECT * FROM `" + DB_NAME + "`.`Banks` WHERE name=?";
+
+			try {
+				statement = connection.prepareStatement(sqlStatement, Statement.RETURN_GENERATED_KEYS);
+				statement.setString(1, name);
+
+				ResultSet resultSet = statement.executeQuery();
+
+				if (!resultSet.next())
+					return -1;
+
+				else return resultSet.getInt("bankId");
+
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
+
+		return bankId;
 	}
 
 	//Deletes a Bank row from the Bank table based on the given id.
@@ -787,6 +807,72 @@ public class DBDriver {
 		} catch (SQLException throwables) {
 			throwables.printStackTrace();
 		}
+	}
+
+	public static ArrayList<Bank> getBanks() {
+
+		ArrayList<Bank> banks = new ArrayList<Bank>();
+
+		String sqlStatement = "SELECT * FROM " + DB_NAME + "`.`Banks` ";
+
+		try {
+
+			statement = connection.prepareStatement(sqlStatement);
+			ResultSet resultSet = statement.executeQuery();
+
+			while (resultSet.next()) {
+
+				int id;
+				String name;
+
+				id = resultSet.getInt("bankId");
+				name = resultSet.getString("name");
+
+				Bank bank = new Bank(id, name);
+				banks.add(bank);
+			}
+
+		} catch (SQLException throwables) {
+			throwables.printStackTrace();
+		}
+
+		return banks;
+	}
+
+	public static ArrayList<Bank> getBanksByName(String searchText) {
+
+		ArrayList<Bank> banks = new ArrayList<Bank>();
+
+		if(searchText.isEmpty()){
+			System.out.println("Search parameter is empty.");
+			return banks;
+		}
+
+		String sqlStatement = "SELECT * FROM " + DB_NAME + "`.`Banks` WHERE name = ?";
+
+		try {
+
+			statement = connection.prepareStatement(sqlStatement);
+			statement.setString(1, searchText);
+			ResultSet resultSet = statement.executeQuery();
+
+			while (resultSet.next()) {
+
+				int id;
+				String name;
+
+				id = resultSet.getInt("bankId");
+				name = resultSet.getString("name");
+
+				Bank bank = new Bank(id, name);
+				banks.add(bank);
+			}
+
+		} catch (SQLException throwables) {
+			throwables.printStackTrace();
+		}
+
+		return banks;
 	}
 
 	//Adds a bank account to the BankAccounts table and links it to the given user id and bank.
@@ -871,6 +957,57 @@ public class DBDriver {
 		} catch (SQLException throwables) {
 			throwables.printStackTrace();
 		}
+	}
+
+	//Gets a list of all the items that belong in the users cart.
+	public static ArrayList<BankAccount> getBankAccounts(int userId) {
+
+		ArrayList<BankAccount> bankAccounts = new ArrayList<BankAccount>();
+
+		if (userId < 1) {
+			System.out.println("User id cannot be less than 0");
+			return bankAccounts;
+		}
+
+		String sqlStatement = "SELECT "
+				+ "bankAccountId,"
+				+ "accountNumber,"
+				+ "Banks.bankId,"
+				+ "Banks.name "
+				+ "FROM `" + DB_NAME + "`.`Banks` "
+				+ "JOIN `" + DB_NAME + "`.`BankAccounts` "
+				+ "ON BankAccounts.Users_userId = ? AND BankAccounts.Banks_bankId = Banks.bankId";
+
+		try {
+
+			statement = connection.prepareStatement(sqlStatement);
+			statement.setInt(1, userId);
+
+			ResultSet resultSet = statement.executeQuery();
+
+			while (resultSet.next()) {
+
+				int bankAccountId;
+				int accountNumber;
+				int bankId;
+				String bankName;
+
+				bankAccountId = resultSet.getInt("bankAccountId");
+				accountNumber = resultSet.getInt("accountNumber");
+				bankId = resultSet.getInt("bankId");
+				bankName = resultSet.getString("name");
+
+				Bank newBank = new Bank(bankId, bankName);
+				BankAccount acct = new BankAccount(bankAccountId, accountNumber, newBank);
+
+				bankAccounts.add(acct);
+			}
+
+		} catch (SQLException throwables) {
+			throwables.printStackTrace();
+		}
+
+		return bankAccounts;
 	}
 
 	//Coupon management is only done through the backend, users do not have access to these functions.
