@@ -38,7 +38,7 @@ public class CartCheckout extends JFrame {
 	public CartCheckout(JFrame frame) {
 		errorLabel.setVisible(false);
 		grandTotal.setText("Grand Total: $" + String.format("%,.2f", Cart.getCart().getTotalPrice()));
-		Main.setUser(DBDriver.signIn("Irmuun", "Password"));
+
 		DefaultComboBoxModel<Address> addressModel = new DefaultComboBoxModel<>(new Vector<>(DBDriver.getAddresses(Main.getUser().getId())));
 		savedAddresses.setModel(addressModel);
 
