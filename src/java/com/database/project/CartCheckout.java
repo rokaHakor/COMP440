@@ -35,12 +35,20 @@ public class CartCheckout extends JFrame {
 	private JComboBox<Address> savedAddresses;
 	private JLabel errorLabel;
 
+	private final Vector<Address> addresses;
+	private final Vector<BankAccount> banks;
+
 	public CartCheckout(JFrame frame) {
 		errorLabel.setVisible(false);
 		grandTotal.setText("Grand Total: $" + String.format("%,.2f", Cart.getCart().getTotalPrice()));
 
-		DefaultComboBoxModel<Address> addressModel = new DefaultComboBoxModel<>(new Vector<>(DBDriver.getAddresses(Main.getUser().getId())));
+		addresses = new Vector<>(DBDriver.getAddresses(Main.getUser().getId()));
+		DefaultComboBoxModel<Address> addressModel = new DefaultComboBoxModel<>(addresses);
 		savedAddresses.setModel(addressModel);
+
+		banks = new Vector<>(DBDriver.getBankAccounts(Main.getUser().getId()));
+		DefaultComboBoxModel<BankAccount> bankModel = new DefaultComboBoxModel<>(banks);
+		savedBanks.setModel(bankModel);
 
 		accountText.setColumns(10);
 		PlainDocument doc = (PlainDocument) accountText.getDocument();
@@ -92,11 +100,38 @@ public class CartCheckout extends JFrame {
 		});
 
 		saveAddressButton.addActionListener(e -> {
-			DBDriver.addAddressFull(Main.getUser().getId(), getAddress());
+			Address newAddress = getAddress();
+			if (newAddress != null) {
+				DBDriver.addAddressFull(Main.getUser().getId(), newAddress);
+				addresses.add(newAddress);
+				savedAddresses.setSelectedItem(newAddress);
+			}
 		});
 
 		saveBankButton.addActionListener(e -> {
-			saveBank();
+			BankAccount newBank = saveBank();
+			if (newBank != null) {
+				banks.add(newBank);
+				savedBanks.setSelectedItem(newBank);
+			}
+		});
+
+		savedAddresses.addItemListener(e -> {
+			Address selectedAddress = (Address) savedAddresses.getSelectedItem();
+			if (selectedAddress != null) {
+				addressText.setText(selectedAddress.getAddress());
+				cityText.setText(selectedAddress.getCity());
+				stateText.setText(selectedAddress.getState());
+				countryText.setText(selectedAddress.getCountry());
+			}
+		});
+
+		savedBanks.addItemListener(e -> {
+			BankAccount selectedBank = (BankAccount) savedBanks.getSelectedItem();
+			if (selectedBank != null) {
+				bankText.setText(selectedBank.getBank().getName());
+				accountText.setText("" + selectedBank.getAccountNumber());
+			}
 		});
 	}
 
@@ -115,17 +150,18 @@ public class CartCheckout extends JFrame {
 		return new Address(0, address, city, state, country);
 	}
 
-	private void saveBank() {
+	private BankAccount saveBank() {
 		String bank = bankText.getText();
 		String account = accountText.getText();
 
 		if (bank == null || account == null) {
 			errorLabel.setText("Invalid Bank Field");
 			errorLabel.setVisible(true);
-			return;
+			return null;
 		}
 
 		DBDriver.addBank(bank);
 		DBDriver.addBankAccount(Main.getUser().getId(), bank, Integer.parseInt(account));
+		return new BankAccount(0, Integer.parseInt(account), new Bank(0, bank));
 	}
 }
