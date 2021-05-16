@@ -7,6 +7,7 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.PlainDocument;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,6 +38,9 @@ public class CartCheckout extends JFrame {
 	public CartCheckout(JFrame frame) {
 		errorLabel.setVisible(false);
 		grandTotal.setText("Grand Total: $" + String.format("%,.2f", Cart.getCart().getTotalPrice()));
+		Main.setUser(DBDriver.signIn("Irmuun", "Password"));
+		DefaultComboBoxModel<Address> addressModel = new DefaultComboBoxModel<>(new Vector<>(DBDriver.getAddresses(Main.getUser().getId())));
+		savedAddresses.setModel(addressModel);
 
 		accountText.setColumns(10);
 		PlainDocument doc = (PlainDocument) accountText.getDocument();
@@ -108,7 +112,7 @@ public class CartCheckout extends JFrame {
 			return null;
 		}
 
-		return new Address(address, city, state, country);
+		return new Address(1, address, city, state, country);
 	}
 
 	private void saveBank() {

@@ -3,8 +3,6 @@ package com.database.project;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
-
 public class Main {
 
 	@Getter
@@ -16,9 +14,5 @@ public class Main {
 
 		MainFrame frame = new MainFrame();
 		frame.setVisible(true);
-
-		ArrayList<Address> addresses =  DBDriver.getAddresses(1);
-
-		System.out.println("got addresses");
 	}
 }
