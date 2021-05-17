@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class DBDriver {
@@ -129,8 +130,6 @@ public class DBDriver {
 		String sqlCreate = "CREATE TABLE IF NOT EXISTS `" + DB_NAME + "`.`Users`"
 				+ "("
 				+ "userId             INT NOT NULL AUTO_INCREMENT,"
-				+ "firstName          varchar(10) NULL,"
-				+ "lastName           varchar(25) NULL,"
 				+ "accountName        varchar(25) NOT NULL,"
 				+ "password           varchar(25) NOT NULL,"
 				+ "PRIMARY KEY        (`userId`),"
@@ -224,12 +223,12 @@ public class DBDriver {
 				+ "orderId            INT NOT NULL AUTO_INCREMENT,"
 				+ "orderDate          DATETIME NOT NULL,"
 				+ "Users_userId       INT NOT NULL,"
-				+ "Coupons_couponId   INT NOT NULL,"
+				+ "Coupons_couponId   INT,"
 				+ "BankAccounts_bankAccountId     INT NOT NULL,"
-				+ "PRIMARY KEY        (`orderId`, `Users_userId`, `Coupons_couponId`, `BankAccounts_bankAccountId`),"
+				+ "PRIMARY KEY        (`orderId`, `Users_userId`, `BankAccounts_bankAccountId`),"
 				+ "INDEX              `fk_OrderNumbers_Users_idx`            (`Users_userId` ASC) VISIBLE,"
 				+ "INDEX              `fk_OrderNumbers_Coupons_idx`          (`Coupons_couponId` ASC) VISIBLE,"
-				+ "INDEX              `fl_OrderNumbers_BankAccounts_idx`     (`BankAccounts_bankAccountId` ASC) VISIBLE,"
+				+ "INDEX              `fk_OrderNumbers_BankAccounts_idx`     (`BankAccounts_bankAccountId` ASC) VISIBLE,"
 
 				+ "CONSTRAINT         `fk_OrderNumbers_Users`"
 				+ "FOREIGN KEY (`Users_userId`)"
@@ -243,7 +242,7 @@ public class DBDriver {
 				+ "ON DELETE NO ACTION "
 				+ "ON UPDATE NO ACTION ,"
 
-				+ "CONSTRAINT         `fl_OrderNumbers_BankAccounts`"
+				+ "CONSTRAINT         `fk_OrderNumbers_BankAccounts`"
 				+ "FOREIGN KEY (`BankAccounts_bankAccountId`)"
 				+ "REFERENCES `" + DB_NAME + "`.`BankAccounts` (`bankAccountId`) "
 				+ "ON DELETE NO ACTION "
@@ -1081,45 +1080,82 @@ public class DBDriver {
 		}
 	}
 
-	//Adds a new order number using the users id, their bank account id, and an optional coupon id.
-	//Pass in coupon id < 1 if you want to leave this empty.
-	public static void addOrderNumber(int userId, int bankAcctId, int couponId) {
+	//Adds a new order number using the users id, their bank account id, and a coupon id.
+	public static void addOrderNumberWithCoupon(int userId, int bankAcctId, int couponId) {
 
-		if (userId < 1 || bankAcctId < 1) {
-			System.out.println("User/Bank id cannot be less than 1");
+		if (userId < 1 || bankAcctId < 1 || couponId < 1) {
+			System.out.println("User/Bank/Coupon id cannot be less than 1");
 			return;
 		}
 
-		String sqlStatement;
+		String sqlStatement = "INSERT INTO `" + DB_NAME + "`.`OrderNumbers` "
+				+ "(orderDate, Users_userId, Coupons_couponId, BankAccounts_bankAccountId) "
+				+ "VALUES (?,?,?,?)";
 
-		if (couponId < 1) {
-			sqlStatement = "INSERT INTO `" + DB_NAME + "`.`OrderNumbers` "
-					+ "(orderDate, Users_userId, BankAccounts_bankAccountId) "
-					+ "VALUES (?,?,?)";
-		} else {
-			sqlStatement = "INSERT INTO `" + DB_NAME + "`.`OrderNumbers` "
-					+ "(orderDate, Users_userId, Coupons_couponId, BankAccounts_bankAccountId) "
-					+ "VALUES (?,?,?,?)";
-		}
 
 		try {
 
 			statement = connection.prepareStatement(sqlStatement);
 			statement.setDate(1, new java.sql.Date(new java.util.Date().getTime()));
 			statement.setInt(2, userId);
-
-			if (couponId > 0) {
-				statement.setInt(3, couponId);
-				statement.setInt(4, bankAcctId);
-			} else {
-				statement.setInt(3, bankAcctId);
-			}
+			statement.setInt(3, couponId);
+			statement.setInt(4, bankAcctId);
 
 			statement.executeUpdate();
 
 		} catch (SQLException throwables) {
 			throwables.printStackTrace();
 		}
+	}
+
+	//Adds a new order number using the users id, their bank account id, and a coupon id.
+	public static void addOrderNumberWithoutCoupon(int userId, int bankAcctId) {
+
+		if (userId < 1 || bankAcctId < 1) {
+			System.out.println("User/Bank id cannot be less than 1");
+			return;
+		}
+
+		String sqlStatement = "INSERT INTO `" + DB_NAME + "`.`OrderNumbers` "
+				+ "(orderDate, Users_userId, BankAccounts_bankAccountId) "
+				+ "VALUES (?,?,?)";
+
+
+		try {
+
+			statement = connection.prepareStatement(sqlStatement);
+			statement.setDate(1, new java.sql.Date(new java.util.Date().getTime()));
+			statement.setInt(2, userId);
+			statement.setInt(3, bankAcctId);
+
+			statement.executeUpdate();
+
+		} catch (SQLException throwables) {
+			throwables.printStackTrace();
+		}
+	}
+
+	//Gets how much of an item is stocked in the retail inventory.
+	public static int getItemStock(int id) {
+
+		int amt = 0;
+
+		String sqlStatement = "SELECT quantity FROM `" + DB_NAME + "`.`RetailInventory` WHERE itemId = ? ";
+
+		try {
+
+			statement = connection.prepareStatement(sqlStatement);
+			statement.setInt(1, id);
+			ResultSet resultSet = statement.executeQuery();
+
+			if(resultSet.next())
+				amt = resultSet.getInt(1);
+
+		} catch (SQLException throwables) {
+			throwables.printStackTrace();
+		}
+
+		return amt;
 	}
 
 	public static void addSoldItem(int orderId, int itemId, int quantity, Date expectedDelivery) {
@@ -1129,24 +1165,29 @@ public class DBDriver {
 			return;
 		}
 
-		String sqlStatement = "INSERT INTO `" + DB_NAME + "`.`SoldItems` "
-				+ "(quantity, status, expectedDelivery, OrderNumbers_orderId, RetailInventory_itemId) "
-				+ "VALUES (?,?,?,?,?)";
+		int stock = getItemStock(itemId);
 
-		try {
+		if (stock > quantity){
+			String sqlStatement = "INSERT INTO `" + DB_NAME + "`.`SoldItems` "
+					+ "(quantity, status, expectedDelivery, OrderNumbers_orderId, RetailInventory_itemId) "
+					+ "VALUES (?,?,?,?,?)";
 
-			statement = connection.prepareStatement(sqlStatement);
-			statement.setInt(1, quantity);
-			statement.setString(2, "In Transit");
-			statement.setDate(3, expectedDelivery);
-			statement.setInt(4, orderId);
-			statement.setInt(5, itemId);
+			try {
 
-			statement.executeUpdate();
+				statement = connection.prepareStatement(sqlStatement);
+				statement.setInt(1, quantity);
+				statement.setString(2, "In Transit");
+				statement.setDate(3, expectedDelivery);
+				statement.setInt(4, orderId);
+				statement.setInt(5, itemId);
 
-		} catch (SQLException throwables) {
-			throwables.printStackTrace();
+				statement.executeUpdate();
+
+			} catch (SQLException throwables) {
+				throwables.printStackTrace();
+			}
 		}
+
 
 	}
 
@@ -1570,4 +1611,99 @@ public class DBDriver {
 
 		return addresses;
 	}
+
+	//Gets back an Inventory object of a single page of data from the RetailInventory page.  Amount of items depends on page size given.
+	public static ArrayList<Order> getOrderHistory(int userId, int page, int pageSize) {
+
+		ArrayList<Order> orders = new ArrayList<Order>();
+		String sqlStatement = "SELECT "
+				+	"sellId,"
+				+	"SoldItems.quantity,"
+				+	"SoldItems.status,"
+				+	"SoldItems.expectedDelivery,"
+				+	"OrderNumbers.orderId,"
+				+	"OrderNumbers.orderDate,"
+				+	"RetailInventory.name,"
+				+	"RetailInventory.price,"
+				+	"RetailInventory.description,"
+				+	"Coupons.couponId,"
+				+	"Coupons.code,"
+				+	"Coupons.description,"
+				+	"Coupons.status,"
+				+	"Coupons.discount "
+				+	"FROM `" + DB_NAME + "`.SoldItems "
+				+ 	"INNER JOIN `" + DB_NAME + "`.`OrderNumbers` "
+				+ 	"ON SoldItems.OrderNumbers_orderId = OrderNumbers.orderId AND OrderNumbers.Users_userId = " + userId + " "
+
+				+ 	"LEFT JOIN `" + DB_NAME + "`.`RetailInventory` "
+				+ 	"ON SoldItems.RetailInventory_itemId = RetailInventory.itemId "
+
+				+ 	"LEFT JOIN `" + DB_NAME + "`.`Coupons` "
+				+ 	"ON OrderNumbers.Coupons_couponId = Coupons.couponId "
+
+				+ 	"LEFT JOIN `" + DB_NAME + "`.`CouponItems` "
+				+ 	"ON Coupons.couponId = CouponItems.Coupons_couponId AND CouponItems.RetailInventory_itemId = RetailInventory.itemId "
+
+				+ 	"ORDER BY OrderNumbers.orderDate DESC, RetailInventory.name ASC "
+
+				+	"LIMIT " + String.valueOf((page - 1) * pageSize) + ", " + String.valueOf(pageSize);
+
+		try {
+			statement = connection.prepareStatement(sqlStatement);
+			ResultSet results = statement.executeQuery();
+
+			while (results.next()) {
+
+				//SoldItem variables
+				int soldItemId = results.getInt("sellId");
+				int quantity = results.getInt("SoldItems.quantity");
+				String status = results.getString("SoldItems.status");
+				Date expectedDelivery = results.getDate("SoldItems.expectedDelivery");
+
+				//OrderNumbers variables
+				int orderId = results.getInt("OrderNumbers.orderId");
+				Date orderDate = results.getDate("OrderNumbers.orderDate");
+
+				//RetailInventory variables
+				String itemName = results.getString("RetailInventory.name");
+				double price = results.getDouble("RetailInventory.price");
+				String description = results.getString("RetailInventory.description");
+
+				//Coupon variables
+				int couponId = results.getInt("Coupons.couponId");
+				String couponCode = results.getString("Coupons.code");
+				String couponDescription = results.getString("Coupons.description");
+				String couponStatus = results.getString("Coupons.status");
+				float couponDiscount = (float)results.getDouble("Coupons.discount");
+
+				Coupon coupon = new Coupon(couponId, couponCode, couponDescription, couponStatus, couponDiscount);
+				Item item = new Item(soldItemId, itemName, quantity, price, description);
+				SoldItem soldItem = new SoldItem(item, expectedDelivery, status);
+
+				int i = 0;
+				while (i < orders.size()){
+					int indexId = orders.get(i).getOrderID();
+
+					if(indexId == orderId){
+						orders.get(i).addItem(soldItem);
+						break;
+					}
+					i++;
+				}
+
+				if (orders.size() < 1 || (i == orders.size() && i > 0)){
+					List<SoldItem> items = new ArrayList<SoldItem>();
+					items.add(soldItem);
+					orders.add(new Order(orderId ,orderDate, coupon, items));
+				}
+
+			}
+
+		} catch (SQLException throwables) {
+			throwables.printStackTrace();
+		}
+
+		return orders;
+	}
+
 }

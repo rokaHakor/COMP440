@@ -21,4 +21,10 @@ public class Order {
 
 	@Getter
 	private final List<SoldItem> soldItems;
+
+	public void addItem(SoldItem item){
+		if(item != null){
+			soldItems.add(item);
+		}
+	}
 }
