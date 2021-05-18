@@ -14,6 +14,9 @@ public class Address {
     private String state;
     private String country;
 
+    public Address(String address, String city, String state, String country) {
+    }
+
     @Override
     public String toString(){
         return address;
