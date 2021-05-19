@@ -7,6 +7,8 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.PlainDocument;
+import java.sql.Date;
+import java.time.Instant;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -97,7 +99,24 @@ public class CartCheckout extends JFrame {
 		});
 
 		submitButton.addActionListener(e -> {
-
+			if(Cart.getCart().items().isEmpty()){
+				errorLabel.setText("Cart is empty!");
+				errorLabel.setVisible(true);
+				return;
+			}
+			
+			int orderID = DBDriver.addOrderNumber(Main.getUser().getId(), getBank(), Cart.getCart().getCoupon());
+			for (Item item : Cart.getCart().items()) {
+				Date date = new Date(Instant.now().toEpochMilli() + (3 * 24 * 60 * 60 * 1000));
+				DBDriver.addSoldItem(orderID, item.getItemID(), item.getQuantity(), date);
+				DBDriver.updateItemStock(item.getItemID(), item.getQuantity());
+			}
+			DBDriver.deleteCartItem_All(Main.getUser().getId());
+			Cart.getCart().clear();
+			frame.getContentPane().remove(frame.getContentPane());
+			frame.setContentPane(new BrowseView(frame).getMainPanel());
+			frame.revalidate();
+			frame.repaint();
 		});
 
 		applyButton.addActionListener(e -> {
@@ -120,17 +139,22 @@ public class CartCheckout extends JFrame {
 				addresses.add(newAddress);
 				savedAddresses.setSelectedItem(newAddress);
 			}
+			savedAddresses.revalidate();
 		});
 
 		saveBankButton.addActionListener(e -> {
-			BankAccount newBank = saveBank();
+			BankAccount newBank = getBank();
 			if (newBank != null) {
+				DBDriver.addBank(newBank.getBank().getName());
+				newBank.setBankAccountId(DBDriver.addBankAccount(Main.getUser().getId(),
+						newBank.getBank().getName(), newBank.getAccountNumber()));
 				banks.add(newBank);
 				savedBanks.setSelectedItem(newBank);
 			}
+			savedBanks.revalidate();
 		});
 
-		savedAddresses.addItemListener(e -> {
+		savedAddresses.addActionListener(e -> {
 			Address selectedAddress = (Address) savedAddresses.getSelectedItem();
 			if (selectedAddress != null) {
 				addressText.setText(selectedAddress.getAddress());
@@ -140,7 +164,7 @@ public class CartCheckout extends JFrame {
 			}
 		});
 
-		savedBanks.addItemListener(e -> {
+		savedBanks.addActionListener(e -> {
 			BankAccount selectedBank = (BankAccount) savedBanks.getSelectedItem();
 			if (selectedBank != null) {
 				bankText.setText(selectedBank.getBank().getName());
@@ -164,7 +188,7 @@ public class CartCheckout extends JFrame {
 		return new Address(0, address, city, state, country);
 	}
 
-	private BankAccount saveBank() {
+	private BankAccount getBank() {
 		String bank = bankText.getText();
 		String account = accountText.getText();
 
@@ -174,8 +198,6 @@ public class CartCheckout extends JFrame {
 			return null;
 		}
 
-		DBDriver.addBank(bank);
-		DBDriver.addBankAccount(Main.getUser().getId(), bank, Integer.parseInt(account));
 		return new BankAccount(0, Integer.parseInt(account), new Bank(0, bank));
 	}
 }
