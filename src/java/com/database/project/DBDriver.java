@@ -104,7 +104,7 @@ public class DBDriver {
 	private static void createDatabase() {
 
 		try {
-			//Class.forName("com.mysql.jdbc.Driver");                         //Register for JDBC driver
+			Class.forName("com.mysql.jdbc.Driver");                         //Register for JDBC driver
 			connection = DriverManager.getConnection(DB_URL, USER, PASS);     //Connect to MySql server at localhost
 
 			createStatement = connection.createStatement();
