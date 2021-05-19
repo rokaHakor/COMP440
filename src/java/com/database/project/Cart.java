@@ -67,7 +67,7 @@ public class Cart {
 
 	public double getTotalPrice() {
 		if (coupon != null) {
-			return totalPrice * coupon.getDiscount();
+			return totalPrice * (1 - coupon.getDiscount());
 		}
 		return totalPrice;
 	}

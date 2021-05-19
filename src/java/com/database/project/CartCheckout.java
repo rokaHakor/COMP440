@@ -34,6 +34,7 @@ public class CartCheckout extends JFrame {
 	private JTextField addressText;
 	private JComboBox<Address> savedAddresses;
 	private JLabel errorLabel;
+	private JButton applyButton;
 
 	private final Vector<Address> addresses;
 	private final Vector<BankAccount> banks;
@@ -97,6 +98,19 @@ public class CartCheckout extends JFrame {
 
 		submitButton.addActionListener(e -> {
 
+		});
+
+		applyButton.addActionListener(e -> {
+			Coupon coupon = DBDriver.checkCoupon(couponText.getText());
+			if (coupon != null) {
+				Cart.getCart().setCoupon(coupon);
+				errorLabel.setText("Coupon Saving " + Math.round(coupon.getDiscount() * 100) + "%");
+				errorLabel.setVisible(true);
+				grandTotal.setText("Grand Total: $" + String.format("%,.2f", Cart.getCart().getTotalPrice()));
+			} else {
+				errorLabel.setText("Invalid Coupon!");
+				errorLabel.setVisible(true);
+			}
 		});
 
 		saveAddressButton.addActionListener(e -> {

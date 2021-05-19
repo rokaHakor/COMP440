@@ -103,7 +103,7 @@ public class DBDriver {
 	private static void createDatabase() {
 
 		try {
-			Class.forName("com.mysql.jdbc.Driver");                         //Register for JDBC driver
+			//Class.forName("com.mysql.jdbc.Driver");                         //Register for JDBC driver
 			connection = DriverManager.getConnection(DB_URL, USER, PASS);     //Connect to MySql server at localhost
 
 			createStatement = connection.createStatement();
@@ -212,6 +212,7 @@ public class DBDriver {
 		try {
 			createStatement = connection.createStatement();
 			createStatement.execute(sqlCreate);
+			addCoupon(new Coupon(0, "SAVE20", "Save 20%", "Active", 0.2f));
 		} catch (SQLException se) {
 			se.printStackTrace();
 		}
@@ -733,7 +734,7 @@ public class DBDriver {
 
 		int bankId = 0;
 
-		String sqlStatement = "INSERT INTO `" + DB_NAME + "`.`Banks` "
+		String sqlStatement = "INSERT IGNORE INTO `" + DB_NAME + "`.`Banks` "
 				+ "(name) "
 				+ "VALUES (?)";
 
@@ -843,7 +844,7 @@ public class DBDriver {
 
 		ArrayList<Bank> banks = new ArrayList<Bank>();
 
-		if(searchText.isEmpty()){
+		if (searchText.isEmpty()) {
 			System.out.println("Search parameter is empty.");
 			return banks;
 		}
@@ -876,16 +877,16 @@ public class DBDriver {
 	}
 
 	//Adds a bank account to the BankAccounts table and links it to the given user id and bank.
-	public static void addBankAccount(int userId, String bankName, int accountNumber) {
+	public static int addBankAccount(int userId, String bankName, int accountNumber) {
 
 		if (bankName.isEmpty()) {
 			System.out.println("Bank name cannot be empty.");
-			return;
+			return -1;
 		}
 
 		if (accountNumber < 1) {
 			System.out.println("Bank account number invalid.");
-			return;
+			return -1;
 		}
 
 		String sqlStatement = "INSERT INTO `" + DB_NAME + "`.`BankAccounts` "
@@ -894,13 +895,16 @@ public class DBDriver {
 
 		try {
 
-			statement = connection.prepareStatement(sqlStatement);
+			statement = connection.prepareStatement(sqlStatement, Statement.RETURN_GENERATED_KEYS);
 			statement.setInt(1, accountNumber);
 			statement.setInt(2, userId);
 			statement.setString(3, bankName);
 
 			statement.executeUpdate();
-
+			ResultSet resultSet = statement.getGeneratedKeys();
+			if (resultSet.next()) {
+				return resultSet.getInt(1);
+			}
 		}
 
 		//Either foreign key references doesn't exist, or another sql error occurred.
@@ -908,7 +912,7 @@ public class DBDriver {
 		catch (SQLException throwables) {
 			throwables.printStackTrace();
 		}
-
+		return -1;
 	}
 
 	public static void deleteBankAccount(int id) {
@@ -1018,7 +1022,7 @@ public class DBDriver {
 			return;
 		}
 
-		String sqlStatement = "INSERT INTO `" + DB_NAME + "`.`Coupons` "
+		String sqlStatement = "INSERT IGNORE INTO `" + DB_NAME + "`.`Coupons` "
 				+ "(code, description, status, discount) "
 				+ "VALUES (?,?,?,?)";
 
@@ -1035,6 +1039,39 @@ public class DBDriver {
 		} catch (SQLException throwables) {
 			throwables.printStackTrace();
 		}
+	}
+
+	public static Coupon checkCoupon(String code) {
+
+		if (code == null || code.isEmpty()) {
+			System.out.println("Coupon cannot be empty.");
+			return null;
+		}
+
+		String sqlStatement = "SELECT * FROM `" + DB_NAME + "`.`Coupons` WHERE code=?";
+
+		try {
+			statement = connection.prepareStatement(sqlStatement);
+			statement.setString(1, code);
+			ResultSet resultSet = statement.executeQuery();
+			if (resultSet.next()) {
+
+				int id;
+				String description;
+				String status;
+				float discount;
+
+				id = resultSet.getInt("couponId");
+				description = resultSet.getString("description");
+				status = resultSet.getString("status");
+				discount = resultSet.getFloat("discount");
+
+				return new Coupon(id, code, description, status, discount);
+			}
+		} catch (SQLException throwables) {
+			throwables.printStackTrace();
+		}
+		return null;
 	}
 
 	public static void updateCoupon(Coupon coupon) {
@@ -1083,16 +1120,29 @@ public class DBDriver {
 
 	//Adds a new order number using the users id, their bank account id, and an optional coupon id.
 	//Pass in coupon id < 1 if you want to leave this empty.
-	public static void addOrderNumber(int userId, int bankAcctId, int couponId) {
+	public static void addOrderNumber(int userId, BankAccount bankAcc, Coupon coupon) {
 
-		if (userId < 1 || bankAcctId < 1) {
+		if (userId < 1 || bankAcc == null) {
 			System.out.println("User/Bank id cannot be less than 1");
 			return;
 		}
 
+		int bankAcctId;
+		ArrayList<BankAccount> bankAccounts = getBankAccounts(userId);
+		if (bankAccounts.contains(bankAcc)) {
+			bankAcctId = bankAcc.getBankAccountId();
+		} else {
+			DBDriver.addBank(bankAcc.getBank().getName());
+			bankAcctId = DBDriver.addBankAccount(Main.getUser().getId(), bankAcc.getBank().getName(), bankAcc.getAccountNumber());
+			if (bankAcctId == -1) {
+				System.out.println("Error adding new Bank Account");
+				return;
+			}
+		}
+
 		String sqlStatement;
 
-		if (couponId < 1) {
+		if (coupon == null) {
 			sqlStatement = "INSERT INTO `" + DB_NAME + "`.`OrderNumbers` "
 					+ "(orderDate, Users_userId, BankAccounts_bankAccountId) "
 					+ "VALUES (?,?,?)";
@@ -1108,8 +1158,8 @@ public class DBDriver {
 			statement.setDate(1, new java.sql.Date(new java.util.Date().getTime()));
 			statement.setInt(2, userId);
 
-			if (couponId > 0) {
-				statement.setInt(3, couponId);
+			if (coupon != null) {
+				statement.setInt(3, coupon.getCouponID());
 				statement.setInt(4, bankAcctId);
 			} else {
 				statement.setInt(3, bankAcctId);
