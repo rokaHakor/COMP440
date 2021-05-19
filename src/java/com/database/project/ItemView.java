@@ -60,10 +60,10 @@ public class ItemView {
 		itemImage.setText("");
 		itemImage.setIcon(new ImageIcon(image));
 		itemName.setText(item.getName());
-		itemDescription.setText(item.getDescription());
+		itemDescription.setText(
+				String.format("<html><body style=\"text-align: justify;  text-justify: inter-word;\">%s</body></html>", item.getDescription()));
 		itemStock.setText("Current Stock: " + item.getQuantity());
 
-		resizeComponents(frame);
 		inventoryPanel.addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentResized(ComponentEvent e) {
@@ -83,6 +83,7 @@ public class ItemView {
 			frame.revalidate();
 			frame.repaint();
 		});
+		resizeComponents(frame);
 	}
 
 	private void resizeComponents(JFrame frame) {

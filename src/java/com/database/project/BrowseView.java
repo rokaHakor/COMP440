@@ -115,6 +115,8 @@ public class BrowseView {
 
 			}
 		});
+
+		inventoryPanel.grabFocus();
 	}
 
 	public void resizeComponents(Frame frame) {

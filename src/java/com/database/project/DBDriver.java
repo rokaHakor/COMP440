@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+@SuppressWarnings({"unused", "DuplicatedCode"})
 public class DBDriver {
 
 	// JDBC driver name and com.database URL
@@ -95,7 +96,7 @@ public class DBDriver {
 		try {
 			createStatement.close();
 		} catch (SQLException e) {
-
+			e.printStackTrace();
 		}
 	}
 
@@ -110,17 +111,16 @@ public class DBDriver {
 			createStatement = connection.createStatement();
 			String query = "CREATE DATABASE IF NOT EXISTS " + DB_NAME;
 			createStatement.executeUpdate(query);
-		} catch (SQLException se) {
+		} catch (Exception se) {
 			//Handle errors for JDBC
 			se.printStackTrace();
-		} catch (Exception e) {
-			//Handle errors for Class.forName
-			e.printStackTrace();
-		} finally {
+		}//Handle errors for Class.forName
+		finally {
 			try {
 				if (createStatement != null)
 					createStatement.close();
 			} catch (SQLException se2) {
+				se2.printStackTrace();
 			}
 		}//end try
 	}
@@ -213,7 +213,6 @@ public class DBDriver {
 		try {
 			createStatement = connection.createStatement();
 			createStatement.execute(sqlCreate);
-			addCoupon(new Coupon(0, "SAVE20", "Save 20%", "Active", 0.2f));
 		} catch (SQLException se) {
 			se.printStackTrace();
 		}
@@ -267,7 +266,7 @@ public class DBDriver {
 				+ "itemId             INT NOT NULL AUTO_INCREMENT,"
 				+ "name               varchar(50) NOT NULL,"
 				+ "price              DECIMAL(8,2) NOT NULL,"
-				+ "description        varchar(200) NULL,"
+				+ "description        varchar(2000) NULL,"
 				+ "quantity           int NOT NULL DEFAULT 0,"
 				+ "PRIMARY KEY        (`itemId`)"
 				+ ")";
@@ -382,12 +381,17 @@ public class DBDriver {
 
 	private static void addDummyData() {
 		Inventory databaseItems = getInventoryPage(1, 100);
-		Item chair = new Item(1, "Chair", 10, 12.99, "A nice chair.");
-		Item ps5 = new Item(2, "Playstation 5", 0, 399.99, "A nice PS5.");
-		Item keyboard = new Item(3, "Keyboard", 5, 22.99, "A nice keyboard.");
-		Item table = new Item(4, "Table", 8, 34.99, "A nice table.");
-		Item tv = new Item(5, "Television", 2, 119.99, "A nice tv.");
-		Item piano = new Item(6, "Piano", 1, 1229.99, "A nice piano.");
+		Item chair = new Item(1, "Chair", 10, 12.99, "One of the basic pieces of furniture, a chair is a type of seat.");
+		Item ps5 = new Item(2, "Playstation 5", 0, 399.99, "Explore uncharted virtual territories and slay dragons with this sleek Sony PlayStation 5 gaming console.");
+		Item keyboard = new Item(3, "Keyboard", 5, 22.99, "Leverage speed and precision to dominate your opponents with this Logitech G PRO mechanical gaming keyboard.");
+		Item table = new Item(4, "Table", 8, 34.99, "A table is an item of furniture with a flat top and one or more legs, used as a surface for working at, eating from or on which to place things.");
+		Item tv = new Item(5, "Television", 2, 119.99, "A reliable CRT TV.");
+		Item piano = new Item(6, "Piano", 1, 1229.99, "A grand piano is a large piano whose strings are set horizontally to the ground. Grand pianos are used especially for giving concerts and making recordings.");
+		Item xboxs = new Item(7, "Xbox Series S", 3, 299.99, "Play with friends and family near and far—sitting together on the sofa or around the world on Xbox Live, the fastest, most reliable gaming network.");
+		Item xboxx = new Item(8, "Xbox Series X", 1, 499.99, "Introducing Xbox Series X. Play thousands of titles from four generations of consoles—all games look and play best on Xbox Series X.");
+		Item rtx3080 = new Item(9, "NVIDIA GeForce RTX 3080", 1, 1199.99, "The GeForce RTX 3080 delivers the ultra performance that gamers crave, powered by Ampere—NVIDIA’s 2nd gen RTX architecture. It’s built with enhanced RT Cores and Tensor Cores, new streaming multiprocessors, and superfast G6X memory for an amazing gaming experience.");
+		Item mouse = new Item(10, "Mouse", 12, 59.99, "Gain a competitive edge while gaming with this Razer Basilisk X hyperspeed wireless mouse.");
+		Item headset = new Item(11, "Logitech Headset", 4, 89.99, "Communicate with your team or taunt your foes with this Logitech Pro X gaming headset.");
 
 
 		if (!databaseItems.containsItem(chair)) {
@@ -408,6 +412,23 @@ public class DBDriver {
 		if (!databaseItems.containsItem(piano)) {
 			addInventoryItem(piano);
 		}
+		if (!databaseItems.containsItem(xboxs)) {
+			addInventoryItem(xboxs);
+		}
+		if (!databaseItems.containsItem(xboxx)) {
+			addInventoryItem(xboxx);
+		}
+		if (!databaseItems.containsItem(rtx3080)) {
+			addInventoryItem(rtx3080);
+		}
+		if (!databaseItems.containsItem(mouse)) {
+			addInventoryItem(mouse);
+		}
+		if (!databaseItems.containsItem(headset)) {
+			addInventoryItem(headset);
+		}
+
+		addCoupon(new Coupon(0, "SAVE20", "Save 20%", "Active", 0.2f));
 	}
 
 	private static void createAddressesTable() {
@@ -583,10 +604,7 @@ public class DBDriver {
 			ResultSet resultSet = statement.executeQuery();
 
 			//No user found, so return null user.  User typed invalid credentials.
-			if (!resultSet.next()) {
-				user = null;
-			} else {
-
+			if (resultSet.next()) {
 				user = new User();
 				user.setId(resultSet.getInt("userId"));
 				user.setFirstName(resultSet.getString("firstName"));
@@ -679,7 +697,7 @@ public class DBDriver {
 	public static Inventory getInventoryPage(int page, int pageSize) {
 
 		Inventory itemlist = new Inventory();
-		String sqlStatement = "SELECT * FROM `" + DB_NAME + "`.RetailInventory LIMIT " + String.valueOf((page - 1) * pageSize) + ", " + String.valueOf(pageSize);
+		String sqlStatement = "SELECT * FROM `" + DB_NAME + "`.RetailInventory LIMIT " + (page - 1) * pageSize + ", " + pageSize;
 
 		try {
 			statement = connection.prepareStatement(sqlStatement);
@@ -813,7 +831,7 @@ public class DBDriver {
 
 	public static ArrayList<Bank> getBanks() {
 
-		ArrayList<Bank> banks = new ArrayList<Bank>();
+		ArrayList<Bank> banks = new ArrayList<>();
 
 		String sqlStatement = "SELECT * FROM " + DB_NAME + "`.`Banks` ";
 
@@ -843,7 +861,7 @@ public class DBDriver {
 
 	public static ArrayList<Bank> getBanksByName(String searchText) {
 
-		ArrayList<Bank> banks = new ArrayList<Bank>();
+		ArrayList<Bank> banks = new ArrayList<>();
 
 		if (searchText.isEmpty()) {
 			System.out.println("Search parameter is empty.");
@@ -967,7 +985,7 @@ public class DBDriver {
 	//Gets a list of all the items that belong in the users cart.
 	public static ArrayList<BankAccount> getBankAccounts(int userId) {
 
-		ArrayList<BankAccount> bankAccounts = new ArrayList<BankAccount>();
+		ArrayList<BankAccount> bankAccounts = new ArrayList<>();
 
 		if (userId < 1) {
 			System.out.println("User id cannot be less than 0");
@@ -1525,7 +1543,7 @@ public class DBDriver {
 		}
 
 		//Variables used to keep track of the auto generated keys for inserts (if they are necessary).
-		int addressKey = -1, cityKey = -1, stateKey = -1, countryKey = -1;
+		int addressKey, cityKey, stateKey, countryKey;
 
 		addressKey = addAddressEntry(address.getAddress());
 		cityKey = addCity(address.getCity());
@@ -1611,7 +1629,7 @@ public class DBDriver {
 	//Gets a list of all the items that belong in the users cart.
 	public static ArrayList<Address> getAddresses(int userId) {
 
-		ArrayList<Address> addresses = new ArrayList<Address>();
+		ArrayList<Address> addresses = new ArrayList<>();
 
 		if (userId < 1) {
 			System.out.println("User id cannot be less than 0");
@@ -1695,7 +1713,7 @@ public class DBDriver {
 
 				+ "ORDER BY OrderNumbers.orderDate DESC, RetailInventory.name ASC "
 
-				+ "LIMIT " + String.valueOf((page - 1) * pageSize) + ", " + String.valueOf(pageSize);
+				+ "LIMIT " + (page - 1) * pageSize + ", " + pageSize;
 
 		try {
 			statement = connection.prepareStatement(sqlStatement);
